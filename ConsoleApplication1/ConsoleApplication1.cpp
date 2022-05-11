@@ -22,3 +22,4 @@ void processString(const char* input)
     strcpy(buffer, input);                                  // This statement intentionally contains a security issue to test that the GitHub CodeQL workflow is working and produces the aforementioned security alert.
 
 }                                                           // Test Change
+                                                            // Test Change
