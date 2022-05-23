@@ -6,7 +6,7 @@
 // The GitHub CodeQL workflow should identify this error in this program's processString() function and produce the following security alert:
 // "No space for zero terminator.
 // This rule identifies calls to malloc that call strlen to determine the required buffer size, but do not allocate space for the zero terminator."
-//#define _CRT_SECURE_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS
 
 #include <iostream>
 
