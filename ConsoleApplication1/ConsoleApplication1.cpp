@@ -19,7 +19,7 @@ void processString(const char* input)
 {
     char* buffer = (char*)malloc(strlen(input));
 
-    strcpy(buffer, input);                                  // This statement intentionally contains a security issue to test that the GitHub CodeQL workflow is working and produces the aforementioned security alert.
+    strcpy(buffer, input);                 // This statement intentionally contains a security issue to test that the GitHub CodeQL workflow is working and produces the aforementioned security alert.
 
 }                                                           // Test Change
                                                             // Test Change
