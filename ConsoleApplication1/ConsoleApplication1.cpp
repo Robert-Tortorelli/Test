@@ -2,8 +2,8 @@
 // ConsoleApplication1.cpp : This file contains the 'main' function. Program execution begins and ends there.
 //
 
-// _CRT_SECURE_NO_WARNINGS is neccessary to allow a successful build by suppressing the build error "error C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS."
-// The GitHub CodeQL workflow should identify this error in this program's processString() function and produce the following security alert:
+// _CRT_SECURE_NO_WARNINGS is necessary to allow a successful build by suppressing the build error "error C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS."
+// The GitHub CodeQL work flow should identify this error in this program's processString() function and produce the following security alert:
 // "No space for zero terminator.
 // This rule identifies calls to malloc that call strlen to determine the required buffer size, but do not allocate space for the zero terminator."
 #define _CRT_SECURE_NO_WARNINGS
