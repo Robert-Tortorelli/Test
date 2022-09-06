@@ -19,7 +19,16 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Random.cpp" />
+    <ClCompile Include="objReader - Test.cpp" />
+    <ClCompile Include="objReader.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="objReader.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Text.obj">
+      <FileType>Document</FileType>
+    </None>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
