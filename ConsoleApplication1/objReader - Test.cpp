@@ -38,8 +38,6 @@ void objReader(void);										// The objReader function is defined in file objR
 
 int main()
 {
-	string value;
-
 	cout << "Hello World!\n";
 
     objReader();
