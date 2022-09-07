@@ -2,7 +2,7 @@
 // Version 3.1
 //
 // Description
-// This function parses a single 3D object's descriptive information from a Wavefront .obj file and uses it to populate variables, OurVertices and OurIndices, used when rendering that object.
+// This function parses a single 3D object's descriptive information from a Wavefront .obj file and uses it to populate the variables OurVertices and OurIndices, which are used when rendering that object.
 //
 // Authorship
 // Robert John Tortorelli
@@ -17,14 +17,20 @@
 // File I/O Stream.
 #include <fstream>											// File I/O Stream class member functions get, close, etc.
 
+// ***
+// External Global Variables.
+// ***
+
 // Wavefront .obj file I/O (objReader function) Header File.
 #include "objReader.h"										// Declare external global variables in this header file, and include it in all source files that reference these external global variables.
 // Define external global variables in one and only one source file, this one, and initialize them as needed.
-// See the associated header file for comments on these global variables.
+// See the associated header file for descriptions of these global variables.
 int Vn = 0;
 VERTEX* OurVertices;
 int In = 0;
 DWORD* OurIndices;
+
+// End: External Global Variables.
 
 // Each of the following using declarations brings one identifier, referenced in this source code file, into scope. These multiple individual using declarations are preferred to the single using directive using namespace std; as the latter brings everything in the std namespace into scope.
 // Using declarations must appear after their respective header file includes.

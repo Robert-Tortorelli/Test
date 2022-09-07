@@ -1,13 +1,13 @@
 //***
-// This project's objReader.* files are the latest versions and will replace those in the project at repo\DirectX\objRenderer.
-// The primary source code files at repo\DirectX\objRenderer are temporarily READ-ONLY.
+// This project's objReader.* files are the latest versions and will replace those in the project located at repo\DirectX\objRenderer.
+// The primary source code files located at repo\DirectX\objRenderer are temporarily READ-ONLY.
 //***
 //
 // objReader - Test
 // Version 1
 //
 // Description
-// This program facilitates unit testing the objReader function that parses a Wavefront.obj file.
+// This program facilitates testing the objReader function in isolation.
 //
 // Authorship
 // Robert John Tortorelli
@@ -48,7 +48,7 @@ int main()
 	{
 		cout << "OurVertices[" + to_string(Vi) + "].X) is " + to_string(OurVertices[Vi].X) + "\n";
 		cout << "OurVertices[" + to_string(Vi) + "].Y) is " + to_string(OurVertices[Vi].Y) + "\n";
-		// Invert each DirectX formated vertices' Z coordinate (i.e., -OurVertices[Vi].Z) to display it as specified on each geometric vertex line of the OBJ file (i.e., "v X, Y, Z").
+		// Invert each DirectX formated vertices' Z coordinate (i.e., -OurVertices[Vi].Z) to display it as specified on each geometric vertex line of the Wavefront .obj file (i.e., "v X, Y, Z").
 		cout << "OurVertices[" + to_string(Vi) + "].Z) is " + to_string(-OurVertices[Vi].Z) + "\n";
 		++Vi;
 	}
