@@ -44,10 +44,12 @@ int main()
 
 	//***
 	int Vi = 0;
-	while (Vi <= Vn) //*HERE*
+	while (Vi < Vn)
 	{
-		value = "OurVertices[0].X) is " + to_string(OurVertices[0].X);
-		cout << value;
+		cout << "OurVertices[" + to_string(Vi) + "].X) is " + to_string(OurVertices[Vi].X) + "\n";
+		cout << "OurVertices[" + to_string(Vi) + "].Y) is " + to_string(OurVertices[Vi].Y) + "\n";
+		// Invert each DirectX formated vertices' Z coordinate (i.e., -OurVertices[Vi].Z) to display it as specified on each geometric vertex line of the OBJ file (i.e., "v X, Y, Z").
+		cout << "OurVertices[" + to_string(Vi) + "].Z) is " + to_string(-OurVertices[Vi].Z) + "\n";
 		++Vi;
 	}
 }
