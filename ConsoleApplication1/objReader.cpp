@@ -2,7 +2,7 @@
 // Version 3.1
 //
 // Description
-// This function reads and parses a single 3D object's descriptive information from a Wavefront .obj file and uses it to define the data structures needed to render that object.
+// This function parses a single 3D object's descriptive information from a Wavefront .obj file and uses it to populate variables, OurVertices and OurIndices, used when rendering that object.
 //
 // Authorship
 // Robert John Tortorelli

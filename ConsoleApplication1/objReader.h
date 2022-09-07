@@ -2,7 +2,7 @@
 // Version 3.1
 //
 // Description
-// This header file declares external global variables used to store information read from a Wavefront .obj file by the objReader function.
+// This header file declares external global variables.
 // Include it in all source files that reference these external global variables, and always in the objReader function source file that defines them.
 // Then define these external global variables, and optionally initialize them, in one and only one source file, in this case the objReader function source file.
 //
@@ -22,14 +22,15 @@ struct VERTEX
 };
 
 // Declare global variables external by declaring them 'extern' here. Otherwise building the project results in Linker Tools Error LNK2005 (symbol already defined in object).
+// The objReader function parses a single 3D object's descriptive information from a Wavefront .obj file and uses it to populate variables, OurVertices and OurIndices, used when rendering that object.
 //
-// Read and store vertex information in the variable OurVertices, which is used to the populate the GPU's vertex buffer.
+// OurVertices is used to initialize the GPU's vertex buffer.
 // "Vn" is computed at run time to be the number of vertices comprising an object.
 // After "Vn" is computed, allocate OurVertices as an array (OurVertices[VertexNo]) of type VERTEX using "OurVertices = new VERTEX[Vn]".
 extern int Vn;												// The number of vertices comprising the object.
 extern VERTEX* OurVertices;									// A pointer to the first element in the array of VERTEX structures, with each structure representing the vertex elements of one vertex of an object.
 //
-// Read and store index information in the variable OurIndices, which is used to the populate the GPU's index buffer.
+// OurIndices is used to initialize the GPU's index buffer.
 // "In" is computed at run time to be the number of triangle primitives comprising an object.
 // After "In" is computed, allocate OurIndices as an array (OurIndices[FaceElementNo]) of type DWORD using OurIndices = new DWORD[In * 3]. Three vertex indices (each pointing to a vertex in OurVertices) describe each triangle, and "In" is the number of triangles comprising the object. Therefore In * 3.
 extern int In;												// The number of primitives comprising the object. In this program, they are triangle primitives.
