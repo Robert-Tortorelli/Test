@@ -25,13 +25,13 @@ struct VERTEX
 // The objReader function parses a single 3D object's descriptive information from a Wavefront .obj file and uses it to populate the variables OurVertices and OurIndices, which are used when rendering that object.
 //
 // OurVertices is used to initialize the GPU's vertex buffer.
-// "Vn" is computed at run time to be the number of vertices comprising the object. There are three vertices in each triangle primitive.
+// "Vn" is computed at run time to be the number of vertices comprising the triangle primitives comprising the object.
 // After "Vn" is computed, allocate OurVertices as an array (OurVertices[VertexNo]) of type VERTEX using "OurVertices = new VERTEX[Vn]".
-extern int Vn;												// The number of vertices comprising the object.
-extern VERTEX* OurVertices;									// A pointer to the first element in the array of VERTEX structures, with each structure representing the vertex elements of one vertex of the object.
+extern int Vn;												// The number of vertices comprising the triangle primitives comprising the object.
+extern VERTEX* OurVertices;									// A pointer to the first element in an array of VERTEX structures, with each element representing one vertex.
 //
 // OurIndices is used to initialize the GPU's index buffer.
-// "In" is computed at run time to be the number of triangle primitives comprising the object. Each triangle primitive is described by three vertex indices, referencing three vertices.
-// After "In" is computed, allocate OurIndices as an array (OurIndices[FaceElementNo]) of type DWORD using OurIndices = new DWORD[In * 3] (The number of vertex indices equals the number of triangle primitives * 3).
+// "In" is computed at run time to be the number of triangle primitives comprising the object.
+// After "In" is computed, allocate OurIndices as an array (OurIndices[FaceElementNo]) of type DWORD using OurIndices = new DWORD[In * 3] (The number of vertex indices equals the number of triangle primitives * 3 equals the number of vertices).
 extern int In;												// The number of triangle primitives comprising the object.
-extern DWORD* OurIndices;									// A pointer to the first element in the array of vertex indices of the object, with three vertex indices per triangle primitive.
+extern DWORD* OurIndices;									// A pointer to the first element in an array of vertex indices, with each element referencing one vertex of OurVertices[].
