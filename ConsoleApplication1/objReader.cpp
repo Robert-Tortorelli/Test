@@ -115,10 +115,10 @@ void objReader(void)
 
 			// Initialize the Vertex's Color using an arbitrary formula:
 			// Color[x] is 0 or 1 because (n MOD 2) is 0 or 1, where n is any real number.
-			OurVertices[VertexNo].Color[0] = (float)(VertexNo / 1 % 2);
-			OurVertices[VertexNo].Color[1] = (float)(VertexNo / 2 % 2);
-			OurVertices[VertexNo].Color[2] = (float)(VertexNo / 3 % 2);
-			OurVertices[VertexNo].Color[3] = (float)(VertexNo / 4 % 2);
+			OurVertices[VertexNo].Color[0] = (float)((VertexNo / 1) % 2);
+			OurVertices[VertexNo].Color[1] = (float)((VertexNo / 2) % 2);
+			OurVertices[VertexNo].Color[2] = (float)((VertexNo / 3) % 2);
+			OurVertices[VertexNo].Color[3] = (float)((VertexNo / 4) % 2);
 
 			// Parse the current "v " vertex row in the Wavefront .obj file for vertex elements, and store them.
 			// nOffset is incremented to 2 if "v " is found in column 1.

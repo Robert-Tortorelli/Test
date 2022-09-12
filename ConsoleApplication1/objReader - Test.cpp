@@ -42,14 +42,35 @@ int main()
 
     objReader();
 
-	//***
+	// Display OurVertices, a variable containing values formatted for DirectX, in the Wavefront .obj file format.
+	// OurVertices is the array of all object geometric vertices used to initialize the GPU's vertex buffer.
 	int Vi = 0;
 	while (Vi < Vn)
 	{
-		cout << "OurVertices[" + to_string(Vi) + "].X) is " + to_string(OurVertices[Vi].X) + "\n";
-		cout << "OurVertices[" + to_string(Vi) + "].Y) is " + to_string(OurVertices[Vi].Y) + "\n";
-		// Invert each DirectX formated vertices' Z coordinate (i.e., -OurVertices[Vi].Z) to display it as specified on each geometric vertex line of the Wavefront .obj file (i.e., "v X, Y, Z").
-		cout << "OurVertices[" + to_string(Vi) + "].Z) is " + to_string(-OurVertices[Vi].Z) + "\n";
+		cout << "OurVertices[" + to_string(Vi) + "].X is "		  + to_string(OurVertices[Vi].X) + "\n";
+		cout << "OurVertices[" + to_string(Vi) + "].Y is "		  + to_string(OurVertices[Vi].Y) + "\n";
+		cout << "OurVertices[" + to_string(Vi) + "].Z is "		  + to_string(-OurVertices[Vi].Z) + "\n"; // Invert each DirectX formatted object geometric vertex's Z coordinate (i.e., -OurVertices[Vi].Z) to display it as specified on each object geometric vertex of the Wavefront .obj file using the format "v X, Y, Z".
+
+		cout << "OurVertices[" + to_string(Vi) + "].Color[0] is " + to_string(OurVertices[Vi].Color[0]) + " from OurVertices element no. / 1 (" + to_string(Vi/1) + ") mod 2 (" + to_string((Vi/1) % 2) + ")\n";
+		cout << "OurVertices[" + to_string(Vi) + "].Color[1] is " + to_string(OurVertices[Vi].Color[1]) + " from OurVertices element no. / 2 (" + to_string(Vi/2) + ") mod 2 (" + to_string((Vi/2) % 2) + ")\n";
+		cout << "OurVertices[" + to_string(Vi) + "].Color[2] is " + to_string(OurVertices[Vi].Color[2]) + " from OurVertices element no. / 3 (" + to_string(Vi/3) + ") mod 2 (" + to_string((Vi/3) % 2) + ")\n";
+		cout << "OurVertices[" + to_string(Vi) + "].Color[3] is " + to_string(OurVertices[Vi].Color[3]) + " from OurVertices element no. / 4 (" + to_string(Vi/4) + ") mod 2 (" + to_string((Vi/4) % 2) + ")\n";
+
+		cout << "\n";
 		++Vi;
 	}
+
+	// Display OurIndices, a variable containing values formatted for DirectX, in the Wavefront .obj file format.
+	// OurIndices is the array of triangle vertex indices used to initialize the GPU's index buffer.
+	int Ii = 0;
+	while (Ii < In * 3)
+	{
+		// Triangle vertex indices formatted for DirectX are displayed in reverse order relative to the order in the Wavefront .obj file.
+		cout << "OurIndices[" + to_string(Ii) + "] is " + to_string(OurIndices[Ii] + 1) + "\n";			  // Increment each DirectX formatted triangle vertex index to display it as specified on each vertex index face element line of the Wavefront .obj file using the format "f v1 v2 v3".
+
+		cout << "\n";
+		++Ii;
+	}
+
+	cout << "Vn: " + to_string(Vn) + "\nIn: " + to_string(In);
 }
