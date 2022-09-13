@@ -25,10 +25,10 @@
 #include "objReader.h"										// Declare external global variables in this header file, and include it in all source files that reference these external global variables.
 // Define external global variables in one and only one source file, this one, and initialize them as needed.
 // See the associated header file for descriptions of these global variables.
-int Vn = 0;
 VERTEX* OurVertices;
-int In = 0;
+int Vn = 0;
 DWORD* OurIndices;
+int In = 0;
 
 // End: External Global Variables.
 
@@ -79,8 +79,8 @@ void objReader(void)
 
 		exit(1);
 	}
-	// Compute "Vn" at run time based on the number of vertices comprising the object as defined in the Wavefront .obj file.
-	// Compute "In" at run time based on the number of triangles, a face element, comprising the object as defined in the Wavefront .obj file.
+	// "Vn" is computed at run time to be the number of geometric vertices comprising the object, e.g., 8 geometric vertices comprise the 8 corners of a cube object, each specified by one geometric vertex line.
+	// "In" is computed at run time to be the number of primitives comprising the object, e.g., 12 triangle primitives comprise a cube's 6 sides, each specified by one vertex index face element line.
 	while (getline(obj, stringtext))						// Read the entire line as a string.
 	{
 		if (nOffset = stringtext.find(v, 0) != string::npos)// nOffset is 1 if "v " is found in column 1. *** The .find documentation says it should be 0 ***

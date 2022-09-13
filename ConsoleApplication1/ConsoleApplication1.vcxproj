@@ -26,9 +26,14 @@
     <ClInclude Include="objReader.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Text.obj">
+    <Text Include="Text.obj">
       <FileType>Document</FileType>
-    </None>
+    </Text>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="Text - C.obj">
+      <FileType>Document</FileType>
+    </Text>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

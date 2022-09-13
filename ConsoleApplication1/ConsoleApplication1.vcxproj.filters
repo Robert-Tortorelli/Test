@@ -28,6 +28,7 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Text.obj" />
+    <Text Include="Text.obj" />
+    <Text Include="Text - C.obj" />
   </ItemGroup>
 </Project>
