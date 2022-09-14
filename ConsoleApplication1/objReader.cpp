@@ -114,7 +114,12 @@ void objReader(void)
 			VertexElementNo = 1;							// We reading the first vertex element, X, of a new Vertex.
 
 			// Initialize the Vertex's Color using an arbitrary formula:
-			// Color[x] is 0 or 1 because (n MOD 2) is 0 or 1, where n is any real number.
+			// Color[x] is 0 or 1 because (n MOD 2) is 0 or 1 for any integer n.
+			// Suppress: "Warning C6386 Buffer overrun while writing to 'OurVertices'. Invalid write to 'OurVertices[1]', (writable range is 0 to 0)"
+			#pragma warning(suppress : 6386)
+			// This is a false positive. Reason:
+			// Array element numbers range from 0 to the size of the array - 1.
+			// The compiler cannot verify that the array element number VertexNo is never more than the size of the array - 1, i.e, VertexNo <= "Vn" - 1.
 			OurVertices[VertexNo].Color[0] = (float)((VertexNo / 1) % 2);
 			OurVertices[VertexNo].Color[1] = (float)((VertexNo / 2) % 2);
 			OurVertices[VertexNo].Color[2] = (float)((VertexNo / 3) % 2);
