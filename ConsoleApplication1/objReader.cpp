@@ -49,69 +49,82 @@ void objReader(void)
 	// ***
 
 	ifstream obj;											// Declare the file stream object representing the Wavefront .obj file.
-	string stringtext;										// Holds one record read from the file stream object representing the Wavefront .obj file.
-	size_t nCharCounter = 0;								// Index into a vertex element or face element, that's being read from the Wavefront .obj file.
-	size_t nOffset;
-	string::iterator it;
+	string stringtext;										// Holds one line of the file stream object representing the Wavefront .obj file.
+	// size_t is a type able to represent the size of any object in bytes.
+	// It is the type returned by the "sizeof" operator and is widely used in the standard library to represent sizes and counts.
+	size_t nCharCounter = 0;								// Index into a vertex element or face element in a line of the Wavefront .obj file.
+	size_t nOffset;											// Index into a line of the Wavefront .obj file.
+	// string::iterator is a member type that acts like a pointer to a character in a string, or an index of an array, but without assuming the container you are iterating over has the random-access capability of an array, i.e., you have container independence.
+	// It is the member type returned by many string member functions.
+	string::iterator it;									// Location within a line of the Wavefront .obj file.
 
 	// Three vertex indices, each a face element pointing to a vertex comprised of three vertex elements, describe a face; i.e., a triangle.
-	const string v("v ");									// "v " prefix indicating a record of the Wavefront .obj file containing three geometric vertex elements describing one vertex of an object.
-	const string f("f ");									// "f " prefix indicating a record of the Wavefront .obj file containing three polygonal face elements   describing one face   of an object.
+	const string v("v ");									// "v " prefix indicating a line of the Wavefront .obj file containing three geometric vertex elements describing one vertex of an object.
+	const string f("f ");									// "f " prefix indicating a line of the Wavefront .obj file containing three polygonal face elements   describing one face   of an object.
 
-#define MAX_ELEMENT_SIZE 50								// Define the maximum vertex element and face element size.
+#define MAX_ELEMENT_SIZE 50									// Define the maximum vertex element and face element size.
 	char tempchar[MAX_ELEMENT_SIZE] = { '\0' };				// Holds one complete vertex element or face element, null-terminated by initializing all array elements to the null-terminator.
 	int ignoreFlag = 0;										// Only save characters of a face element when ignoreFlag = 0.
 
-	// Variables used to track which vertex and vertex element is being read from the Wavefront .obj file.
+	// Variables used to track which vertex and vertex element is being processed in the Wavefront .obj file.
 	int VertexNo = -1;										// The number of the vertex being read, counting from 0. This corresponds to the vertex index (>= 0), a face element.
 	int VertexElementNo;									// The number of the vertex element of the vertex being read: x (VertexElementNo = 1), y (VertexElementNo = 2) or z (VertexElementNo = 3).
 
-	// Variables used to track which face and face element is being read from the Wavefront .obj file.
+	// Variables used to track which face and face element is being processed in the Wavefront .obj file.
 	int FaceNo = -1;										// The number of the face being read, counting from 0. This is informational, not needed or used. Consider logging it.
 	int FaceElementNo = 0;									// The number of the vertex index, a face element, being read, counting from 0. It's counted relative to the first vertex index of the first face, sequentially across all faces. Its final value is one greater than the final value used.
 
 	// Open the Wavefront .obj file for input.
 	obj.open("Text.obj", ios::in);
-	// Check whether the Wavefront .obj file opened successfully.
-	if (!obj)
+	// Check whether the Wavefront .obj file opened successfully. (!obj), (!obj.is_open()), and (obj.fail()) all indicate an error opening the file.
+	if (!obj)												// If not (!) successful (obj) then:
 	{
 		// Cannot open the Wavefront .obj file.
 
 		exit(1);
 	}
-	// "Vn" is computed at run time to be the number of geometric vertices comprising the object, e.g., 8 geometric vertices comprise the 8 corners of a cube object, each specified by one geometric vertex line.
-	// "In" is computed at run time to be the number of primitives comprising the object, e.g., 12 triangle primitives comprise a cube's 6 sides, each specified by one vertex index face element line.
-	while (getline(obj, stringtext))						// Read the entire line as a string.
+
+	// Count the number of geometric vertices "Vn", and the number of primitives "In", of the object specified in the Wavefront .obj file.
+	while (getline(obj, stringtext))						// Attempt to read an entire line from the file stream object obj into the string variable "stringtext".
 	{
-		if (nOffset = stringtext.find(v, 0) != string::npos)// nOffset is 1 if "v " is found in column 1. *** The .find documentation says it should be 0 ***
+		// A line was successfully read from file obj.
+
+		// stringtext.find(v, 0) returns the position (0 - npos) of the first character of the first match of the string v in "stringtext", starting from the default position 0. If no match is found it returns npos.
+		// npos is a constant static member value with the greatest possible value for an element of type size_t.
+		if (nOffset = stringtext.find(v, 0) != string::npos)
 		{
-			// A "v " vertex row in the Wavefront .obj file describing a new vertex has been found.
+			// A "v " vertex line in the Wavefront .obj file describing a new vertex has been found.
 
 			++Vn;											// Count the vertex that was found.
 		}
 		else if (nOffset = stringtext.find(f, 0) != string::npos)
 		{
-			// A "f " face row in the Wavefront .obj file describing a new triangle has been found.
+			// A "f " face line in the Wavefront .obj file describing a new triangle has been found.
 
 			++In;											// Count the face that was found.
 		}
 	}
-	OurVertices = new VERTEX[Vn];							// After "Vn" is computed, allocate memory for OurVertices.
-	OurIndices = new DWORD[In * 3];							// After "In" is computed, allocate memory for OurIndices. Three vertex indices (each pointing to a vertex in OurVertices) describe each triangle, and "In" is the number of triangles comprising the object. Therefore In * 3.
+	// A line was not successfully read from file obj. The end of the file (eof) has been reached.
 
-	// Resetting to the beginning of the previously opened Wavefront .obj file before assigning values to OurVertices and OurIndices.
-	obj.clear();											// The Wavefront .obj file has already been read to eof, so the stream's internal error state flags indicate eof. Therefore all subsequent input operations fail unless you first clear the stream's flags to good.
-	obj.seekg(0, ios::beg);									// Sets the position of the next character to be read to the stream's beginning.
+	//*HERE*// Allocate memory for OurVertices and OurIndices.
+	OurVertices = new VERTEX[Vn];
+	OurIndices = new DWORD[In * 3];
 
-	// Assign values to OurVertices and OurIndices.
-	while (getline(obj, stringtext)) // Read the entire line as a string.
+	// Prepare to reread from the Wavefront .obj file.
+	obj.clear();											// The Wavefront .obj file has already been read to eof, so the stream's internal error state flags indicate eof. Therefore all subsequent input operations fail unless you first clear the stream's flags to goodbit.
+	obj.seekg(0, ios::beg);									// Set the position of the next character to be read to the stream's beginning.
+
+	// Assign values to OurVertices and OurIndices from the Wavefront .obj file.
+	while (getline(obj, stringtext))						// Attempt to read an entire line from the file stream object obj into the string variable "stringtext".
 	{
+		// A line was successfully read from file obj.
+
 		if (nOffset = stringtext.find(v, 0) != string::npos)
 		{
-			// A "v " vertex row in the Wavefront .obj file describing a new vertex has been found.
+			// A "v " vertex line in the Wavefront .obj file describing a new vertex has been found.
 
 			++VertexNo;										// We are reading a new Vertex.
-			VertexElementNo = 1;							// We reading the first vertex element, X, of a new Vertex.
+			VertexElementNo = 1;							// We are reading the first vertex element, X, of a new Vertex.
 
 			// Initialize the Vertex's Color using an arbitrary formula:
 			// Color[x] is 0 or 1 because (n MOD 2) is 0 or 1 for any integer n.
@@ -125,7 +138,7 @@ void objReader(void)
 			OurVertices[VertexNo].Color[2] = (float)((VertexNo / 3) % 2);
 			OurVertices[VertexNo].Color[3] = (float)((VertexNo / 4) % 2);
 
-			// Parse the current "v " vertex row in the Wavefront .obj file for vertex elements, and store them.
+			// Parse the current "v " vertex line in the Wavefront .obj file for vertex elements, and store them.
 			// nOffset is incremented to 2 if "v " is found in column 1.
 			// The function strtok is an alternative way to split a string into tokens.
 			for (it = stringtext.begin() + ++nOffset; it != stringtext.end(); ++it)
@@ -186,11 +199,11 @@ void objReader(void)
 		}
 		else if (nOffset = stringtext.find(f, 0) != string::npos)
 		{
-			// A "f " face row in the Wavefront .obj file describing a new triangle has been found. Three vertex indices (each pointing to a vertex in OurVertices) describe a triangle.
+			// A "f " face line in the Wavefront .obj file describing a new triangle has been found. Three vertex indices (each pointing to a vertex in OurVertices) describe a triangle.
 
 			++FaceNo;										// We are reading a new Face. This is informational, not needed or used. Consider logging it.
 
-			// Parse the current "f " face row in the Wavefront .obj file for face elements, and store them.
+			// Parse the current "f " face line in the Wavefront .obj file for face elements, and store them.
 			for (it = stringtext.begin() + ++nOffset; it != stringtext.end(); ++it)
 			{
 				if (*it != ' ' && *it != '/')
