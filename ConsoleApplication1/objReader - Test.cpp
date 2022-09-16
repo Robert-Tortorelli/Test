@@ -1,6 +1,12 @@
 //***
-// This project's objReader.* files are the latest versions and will replace those in the project located at repo\DirectX\objRenderer.
-// The primary source code files located at repo\DirectX\objRenderer are temporarily READ-ONLY.
+// This project's objReader.* files are the latest versions and will replace those in the project located at "repo\DirectX\objRenderer".
+//
+// When integrating this project's new objReader.cpp function into the objRenderer project:
+// In objRenderer.cpp,
+//   1. Remove the objReader function prototype (it's now in this project's new objReader.h).
+//   2. Test the return code of the objReader function.
+//
+// The primary source code files located at "repo\DirectX\objRenderer" are temporarily READ-ONLY.
 //***
 //
 // objReader - Test
@@ -31,16 +37,16 @@ using std::cout;
 using std::string;
 using std::to_string;
 
-// Global Function Declarations: Function prototypes for functions called in this program.
-void objReader(void);										// The objReader function is defined in file objReader.cpp.
-
-// End: Global Declarations.
-
 int main()
 {
 	cout << "Hello World!\n";
 
-    objReader();
+    int objReaderRC = objReader();							// Call the objReader function and save its return code.
+	if (objReaderRC == 1)									// If the objReader function's return code indicates a problem then terminate.
+	{
+		cout << "Terminating. Function objReader failed with return code: " + to_string(objReaderRC);
+		return objReaderRC;									// Terminate the current program and return objReaderRC to indicate an error.
+	}
 
 	// Display OurVertices, a variable containing values formatted for DirectX, in the Wavefront .obj file format.
 	// OurVertices is the array of all object geometric vertices used to initialize the GPU's vertex buffer.

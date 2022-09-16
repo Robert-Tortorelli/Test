@@ -5,8 +5,6 @@
 // This header file declares external global variables.
 // Include it in all source files that reference these external global variables, and always in the objReader function source file that defines them.
 // Then define these external global variables, and optionally initialize them, in one and only one source file, in this case the objReader function source file.
-//
-// An objReader function prototype must be declared in any source file that calls the objReader function, but not in the objReader function itself. Therefore, an objReader function prototype is not included in this header file, as doing so would unnecessarily place it in the objReader function.
 
 // Specify that the compiler include this header file only once when compiling source code files.
 #pragma once												// Automatically included by Visual Studio 2022 when creating a header file.
@@ -39,3 +37,6 @@ extern int Vn;
 // After "In" is computed, OurIndices is allocated as an array (OurIndices[FaceElementNo]) of type DWORD using OurIndices = new DWORD[In * 3].
 extern DWORD* OurIndices;									// A pointer to the first element in an array of primitive vertex indices, with each element referencing one vertex of OurVertices.
 extern int In;
+
+// Global Function Declarations: Function prototypes for functions called by programs that include this header file. They are optional in the functions themselves.
+int objReader(void);
