@@ -1,4 +1,4 @@
-// objReader function: Definition
+// objReader
 // Version 3.1
 //
 // Description
@@ -17,6 +17,17 @@
 // File I/O Stream.
 #include <fstream>											// File I/O Stream class member functions get, close, etc.
 
+// Using Declarations and Directives.
+// Using declarations such as using std::string;   bring one identifier	 in the named namespace into scope.
+// Using directives	  such as using namespace std; bring all identifiers in the named namespace into scope.
+// Using declarations are preferred to using directives.
+// Using declarations and directives must appear after their respective header file includes.
+using std::fill;
+using std::ifstream;
+using std::ios;
+using std::stof;
+using std::string;
+
 //***
 // External Global Variables.
 //***
@@ -26,25 +37,17 @@
 // Define external global variables in one and only one source file, this one, and initialize them as needed.
 // See the associated header file for descriptions of these global variables.
 VERTEX* OurVertices;
-int Vn = 0;
+int GeometricVerticesTotal = 0;
 DWORD* OurIndices;
-int In = 0;
+int PrimitivesTotal = 0;
 
 // End: External Global Variables.
-
-// Each of the following using declarations brings one identifier, referenced in this source code file, into scope. These multiple individual using declarations are preferred to the single using directive using namespace std; as the latter brings everything in the std namespace into scope.
-// Using declarations must appear after their respective header file includes.
-using std::fill;
-using std::ifstream;
-using std::ios;
-using std::stof;
-using std::string;
 
 // End: Global Declarations.
 
 // objReader function: Definition
 //   This function parses a Wavefront .obj file for a single 3D object's descriptive information and assigns it to the variables used by the calling program when rendering the object.
-//   A subset of all Wavefront descriptive elements are parsed and processed.
+//   A subset of all Wavefront descriptive elements are parsed.
 //     1. Parse the Wavefront .obj file: Count the number of occurrences of each descriptive element in the Wavefront .obj file.
 //
 //     2. Use the count of the number of occurrences of each descriptive element to calculate and allocate memory for the external global variables that will store them.
@@ -66,21 +69,20 @@ int objReader(void)
 	// It is the member type returned by many string member functions.
 	string::iterator it;									// Location within a line of the Wavefront .obj file.
 
-	// Three vertex indices, each a face element pointing to a vertex comprised of three vertex elements, describe a face; i.e., a triangle.
+	// Three vertex indices, each a face element pointing to a vertex comprised of three vertex elements, describe a face; i.e., a triangle primitive.
 	const string v("v ");									// "v " prefix indicating a line of the Wavefront .obj file containing three geometric vertex elements describing one vertex of an object.
 	const string f("f ");									// "f " prefix indicating a line of the Wavefront .obj file containing three polygonal face elements   describing one face   of an object.
 
-#define MAX_ELEMENT_SIZE 50									// Define the maximum vertex element and face element size.
+	#define MAX_ELEMENT_SIZE 50								// Define the maximum vertex element and face element size.
 	char tempchar[MAX_ELEMENT_SIZE] = { '\0' };				// Holds one complete vertex element or face element, null-terminated by initializing all array elements to the null-terminator.
 	int ignoreFlag = 0;										// Only save characters of a face element when ignoreFlag = 0.
 
-	// Variables used to track which vertex and vertex element is being processed in the Wavefront .obj file.
-	int VertexNo = -1;										// The number of the vertex being read, counting from 0. This corresponds to the vertex index (>= 0), a face element.
-	int VertexElementNo;									// The number of the vertex element of the vertex being read: x (VertexElementNo = 1), y (VertexElementNo = 2) or z (VertexElementNo = 3).
+	// Variables used to track which vertex and vertex element is being parsed in the Wavefront .obj file.
+	int VertexNo = -1;										// The number of the vertex being parsed, counting from 0. This corresponds to the vertex index (>= 0), a face element.
+	int VertexElementNo;									// The number of the vertex element of the vertex being parsed: x (VertexElementNo = 1), y (VertexElementNo = 2) or z (VertexElementNo = 3).
 
-	// Variables used to track which face and face element is being processed in the Wavefront .obj file.
-	int FaceNo = -1;										// The number of the face being read, counting from 0. This is informational, not needed or used. Consider logging it.
-	int FaceElementNo = 0;									// The number of the vertex index, a face element, being read, counting from 0. It's counted relative to the first vertex index of the first face, sequentially across all faces. Its final value is one greater than the final value used.
+	// Variables used to track which face and face element is being parsed in the Wavefront .obj file.
+	int FaceElementNo = 0;									// The number of the vertex index, a face element, being parsed, counting from 0. It's counted relative to the first vertex index of the first face, sequentially across all faces. Its final value is one greater than the final value used.
 
 	// End: Local Declarations.
 
@@ -95,10 +97,11 @@ int objReader(void)
 	{
 		// Cannot open the Wavefront .obj file.
 
-		return 1;											// Terminate the current program and return 1 to indicate an error.
+		// Terminate this function with a return code indicating an error.
+		return 1;
 	}
 
-	// Count the number of geometric vertices "Vn", and the number of primitives "In", of the object specified in the Wavefront .obj file.
+	// Count the total number of geometric vertices (GeometricVerticesTotal), and the total number of primitives (PrimitivesTotal), of the object specified in the Wavefront .obj file.
 	while (getline(obj, stringtext))						// Attempt to read an entire line from the file stream object obj into the string variable "stringtext".
 	{
 		// A line was successfully read from file obj.
@@ -107,15 +110,15 @@ int objReader(void)
 		// npos is a constant static member value with the greatest possible value for an element of type size_t.
 		if (nOffset = stringtext.find(v, 0) != string::npos)
 		{
-			// A "v " vertex line in the Wavefront .obj file describing a new vertex has been found.
+			// A "v " geometric vertex line has been found in the Wavefront .obj file.
 
-			++Vn;											// Count the vertex that was found.
+			++GeometricVerticesTotal;						// Count the geometric vertex line that was found.
 		}
 		else if (nOffset = stringtext.find(f, 0) != string::npos)
 		{
-			// A "f " face line in the Wavefront .obj file describing a new triangle has been found.
+			// A "f " face element line		has been found in the Wavefront .obj file.
 
-			++In;											// Count the face that was found.
+			++PrimitivesTotal;								// Count the face element line	   that was found.
 		}
 	}
 	// A line was not successfully read from file obj. The end of the file (eof) has been reached.
@@ -127,8 +130,8 @@ int objReader(void)
 	//***
 
 	// Allocate memory for OurVertices and OurIndices.
-	OurVertices = new VERTEX[Vn];
-	OurIndices = new DWORD[In * 3];
+	OurVertices = new VERTEX[GeometricVerticesTotal];
+	OurIndices = new DWORD[PrimitivesTotal * 3];
 
 	// End: 2. Use the count of the number of occurrences of each descriptive element to calculate and allocate memory for the external global variables that will store them.
 
@@ -137,7 +140,7 @@ int objReader(void)
 	//***
 
 	// Prepare to reread from the Wavefront .obj file.
-	obj.clear();											// The Wavefront .obj file has already been read to eof, so the stream's internal error state flags indicate eof. Therefore all subsequent input operations fail unless you first clear the stream's flags to goodbit.
+	obj.clear();											// The Wavefront .obj file has already been read to eof, so the stream's internal error state flags indicate eof. Therefore all subsequent input operations fail unless the stream's flags are first cleared to goodbit.
 	obj.seekg(0, ios::beg);									// Set the position of the next character to be read to the stream's beginning.
 
 	// Assign values to OurVertices and OurIndices from the Wavefront .obj file.
@@ -147,18 +150,18 @@ int objReader(void)
 
 		if (nOffset = stringtext.find(v, 0) != string::npos)
 		{
-			// A "v " vertex line in the Wavefront .obj file describing a new vertex has been found.
+			// A "v " geometric vertex line has been found in the Wavefront .obj file.
 
-			++VertexNo;										// We are reading a new Vertex.
-			VertexElementNo = 1;							// We are reading the first vertex element, X, of a new Vertex.
+			++VertexNo;										// We are parsing a new Vertex.
+			VertexElementNo = 1;							// We are parsing the first vertex element, X, of a new Vertex.
 
 			// Initialize the Vertex's Color using an arbitrary formula:
 			// Color[x] is 0 or 1 because (n MOD 2) is 0 or 1 for any integer n.
 			// Suppress: "Warning C6386 Buffer overrun while writing to 'OurVertices'. Invalid write to 'OurVertices[1]', (writable range is 0 to 0)"
-#pragma warning(suppress : 6386)
-// This is a false positive. Reason:
-// Array element numbers range from 0 to the size of the array - 1.
-// The compiler cannot verify that the array element number VertexNo is never more than the size of the array - 1, i.e, VertexNo <= "Vn" - 1.
+			#pragma warning(suppress : 6386)
+			// This is a false positive. Reason:
+			// Array element numbers range from 0 to the size of the array - 1.
+			// The compiler cannot verify that the array element number VertexNo is never more than the size of the array - 1, i.e, VertexNo <= GeometricVerticesTotal - 1.
 			OurVertices[VertexNo].Color[0] = (float)((VertexNo / 1) % 2);
 			OurVertices[VertexNo].Color[1] = (float)((VertexNo / 2) % 2);
 			OurVertices[VertexNo].Color[2] = (float)((VertexNo / 3) % 2);
@@ -199,7 +202,7 @@ int objReader(void)
 					fill(tempchar, tempchar + MAX_ELEMENT_SIZE, '\0');
 					// Reset "tempchar's" array element pointer.
 					nCharCounter = 0;
-					// Prepare to read the next vertex element, y or z.
+					// Prepare to parse the next vertex element, y or z.
 					++VertexElementNo;
 				}
 			}
@@ -228,9 +231,7 @@ int objReader(void)
 		}
 		else if (nOffset = stringtext.find(f, 0) != string::npos)
 		{
-			// A "f " face line in the Wavefront .obj file describing a new triangle has been found. Three vertex indices (each pointing to a vertex in OurVertices) describe a triangle.
-
-			++FaceNo;										// We are reading a new Face. This is informational, not needed or used. Consider logging it.
+			// A "f " face element line		has been found in the Wavefront .obj file.
 
 			// Parse the current "f " face line in the Wavefront .obj file for face elements, and store them.
 			for (it = stringtext.begin() + ++nOffset; it != stringtext.end(); ++it)
@@ -259,14 +260,14 @@ int objReader(void)
 						// ' ' char detected, which indicates a complete face element, a vertex index, has been read into "tempchar" (ignoreFlag ensures "tempchar" only holds a vertex index).
 
 						// Convert (reverse) the triangle primitive drawing order from counter-clockwise (used by the Wavefront .obj specification) to clockwise (used by DirectX).
-						// "OurIndices[FaceElementNo] = strtol(tempchar, NULL, 10);"			// Store the face element, a vertex index, in the index buffer. *** Order of vertices is unchanged ***
-						OurIndices[(In * 3) - FaceElementNo - 1] = strtol(tempchar, NULL, 10);	// Store the face element, a vertex index, in the index buffer. *** Order of vertices is reversed  ***
+						// "OurIndices[FaceElementNo] = strtol(tempchar, NULL, 10);"			// Store the face element, a vertex index.																					   *** Order of vertices is unchanged ***
+						OurIndices[(PrimitivesTotal * 3) - FaceElementNo - 1] = strtol(tempchar, NULL, 10);	// Store the face element, a vertex index.																		   *** Order of vertices is reversed  ***
 						// --OurIndices[FaceElementNo];											// DirectX index buffer values start with 0, while the equivalent Wavefront .obj face index values start with 1. Decrement it. *** Order of vertices is unchanged ***
-						--OurIndices[(In * 3) - FaceElementNo - 1];								// DirectX index buffer values start with 0, while the equivalent Wavefront .obj face index values start with 1. Decrement it. *** Order of vertices is reversed  ***
+						--OurIndices[(PrimitivesTotal * 3) - FaceElementNo - 1];				// DirectX index buffer values start with 0, while the equivalent Wavefront .obj face index values start with 1. Decrement it. *** Order of vertices is reversed  ***
 						fill(tempchar, tempchar + MAX_ELEMENT_SIZE, '\0');						// Clear "tempchar" with the null-terminator.
 						nCharCounter = 0;														// Reset "tempchar's" array element pointer.
 						ignoreFlag = 0;															// Reset the flag indicator to save characters of the face element, as it's a vertex index.
-						++FaceElementNo;														// Prepare to read the next face element.
+						++FaceElementNo;														// Prepare to parse the next face element.
 					}
 					else
 					{
@@ -279,14 +280,14 @@ int objReader(void)
 			// End of line reached, which indicates this line's final complete face element has been read into "tempchar".
 
 			// Convert (reverse) the triangle primitive drawing order from counter-clockwise (used by the Wavefront .obj specification) to clockwise (used by DirectX).
-			// "OurIndices[FaceElementNo] = strtol(tempchar, NULL, 10);"						// Store the face element, a vertex index, in the index buffer. *** Order of vertices is unchanged ***
-			OurIndices[(In * 3) - FaceElementNo - 1] = strtol(tempchar, NULL, 10);				// Store the face element, a vertex index, in the index buffer. *** Order of vertices is reversed  ***
-			// --OurIndices[FaceElementNo];														// DirectX index buffer values start with 0, while the equivalent Wavefront .obj face index values start with 1. Decrement it. Order of vertices is unchanged ***
-			--OurIndices[(In * 3) - FaceElementNo - 1];											// DirectX index buffer values start with 0, while the equivalent Wavefront .obj face index values start with 1. Decrement it. Order of vertices is reversed  ***
+			// "OurIndices[FaceElementNo] = strtol(tempchar, NULL, 10);"						// Store the face element, a vertex index.																					   *** Order of vertices is unchanged ***
+			OurIndices[(PrimitivesTotal * 3) - FaceElementNo - 1] = strtol(tempchar, NULL, 10);	// Store the face element, a vertex index.																					   *** Order of vertices is reversed  ***
+			// --OurIndices[FaceElementNo];														// DirectX index buffer values start with 0, while the equivalent Wavefront .obj face index values start with 1. Decrement it. *** Order of vertices is unchanged ***
+			--OurIndices[(PrimitivesTotal * 3) - FaceElementNo - 1];							// DirectX index buffer values start with 0, while the equivalent Wavefront .obj face index values start with 1. Decrement it. *** Order of vertices is reversed  ***
 			fill(tempchar, tempchar + MAX_ELEMENT_SIZE, '\0');									// Clear "tempchar" with the null-terminator.
 			nCharCounter = 0;																	// Reset "tempchar's" array element pointer.
 			ignoreFlag = 0;																		// Reset the flag indicator to save characters of a face element.
-			++FaceElementNo;																	// Prepare to read the next face element. Because it's incremented when the end of the line is reached, its final value is one greater than the final value used.
+			++FaceElementNo;																	// Prepare to parse the next face element. Because it's incremented when the end of the line is reached, its final value is one greater than the final value used.
 			// Get another line from the while loop.
 		}
 	}
@@ -295,4 +296,7 @@ int objReader(void)
 	obj.close();
 
 	// End: 3. Parse the Wavefront.obj file : Assign each occurrence of each descriptive element in the Wavefront.obj file to its associated external global variable.
+
+	// Terminate this function with a return code indicating success.
+	return 0;
 }

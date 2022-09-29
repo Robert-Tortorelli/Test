@@ -21,6 +21,7 @@
   <ItemGroup>
     <ClCompile Include="objReader - Test.cpp" />
     <ClCompile Include="objReader.cpp" />
+    <ClCompile Include="objRenderer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="objReader.h" />

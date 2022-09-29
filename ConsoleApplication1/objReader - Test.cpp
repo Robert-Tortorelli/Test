@@ -1,16 +1,12 @@
 //***
-// This project's objReader.* files are the latest versions and will replace those in the project located at "repo\DirectX\objRenderer".
-//
-// When integrating this project's new objReader.cpp function into the objRenderer project:
-// In objRenderer.cpp,
-//   1. Remove the objReader function prototype (it's now in this project's new objReader.h).
-//   2. Test the return code of the objReader function.
+// This project's "objRenderer" files are the latest versions and are intended to replace those in the project located at "repo\DirectX\objRenderer".
+// This project's objRenderer.cpp file cannot be tested under this project, because it is a Windows app and this is a console project.
 //
 // The primary source code files located at "repo\DirectX\objRenderer" are temporarily READ-ONLY.
 //***
 //
 // objReader - Test
-// Version 1
+// Version 1.0
 //
 // Description
 // This program facilitates testing the objReader function in isolation.
@@ -31,27 +27,32 @@
 // Wavefront .obj file I/O (objReader function) Header File.
 #include "objReader.h"										// Declare external global variables in this header file, and include it in all source files that reference these external global variables.
 
-// Each of the following using declarations brings one identifier, referenced in this source code file, into scope. These multiple individual using declarations are preferred to the single using directive using namespace std; as the latter brings everything in the std namespace into scope.
-// Using declarations must appear after their respective header file includes.
+// Using Declarations and Directives.
+// Using declarations such as using std::string;   bring one identifier	 in the named namespace into scope.
+// Using directives	  such as using namespace std; bring all identifiers in the named namespace into scope.
+// Using declarations are preferred to using directives.
+// Using declarations and directives must appear after their respective header file includes.
 using std::cout;
-using std::string;
 using std::to_string;
+
+// End: Global Declarations.
 
 int main()
 {
 	cout << "Hello World!\n";
 
-    int objReaderRC = objReader();							// Call the objReader function and save its return code.
-	if (objReaderRC == 1)									// If the objReader function's return code indicates a problem then terminate.
+    int objReaderRC = objReader();							// Call a function and save its return code.
+	if (objReaderRC == 1)									// Does the called function's return code indicate an error?
 	{
+		// The called function's return code indicates an error. Terminate this program with the called function's return code.
 		cout << "Terminating. Function objReader failed with return code: " + to_string(objReaderRC);
-		return objReaderRC;									// Terminate the current program and return objReaderRC to indicate an error.
+		return objReaderRC;
 	}
 
 	// Display OurVertices, a variable containing values formatted for DirectX, in the Wavefront .obj file format.
 	// OurVertices is the array of all object geometric vertices used to initialize the GPU's vertex buffer.
 	int Vi = 0;
-	while (Vi < Vn)
+	while (Vi < GeometricVerticesTotal)
 	{
 		cout << "OurVertices[" + to_string(Vi) + "].X is "		  + to_string(OurVertices[Vi].X) + "\n";
 		cout << "OurVertices[" + to_string(Vi) + "].Y is "		  + to_string(OurVertices[Vi].Y) + "\n";
@@ -67,16 +68,19 @@ int main()
 	}
 
 	// Display OurIndices, a variable containing values formatted for DirectX, in the Wavefront .obj file format.
-	// OurIndices is the array of triangle vertex indices used to initialize the GPU's index buffer.
+	// OurIndices is the array of triangle primitive vertex indices used to initialize the GPU's index buffer.
 	int Ii = 0;
-	while (Ii < In * 3)
+	while (Ii < PrimitivesTotal * 3)
 	{
-		// Triangle vertex indices formatted for DirectX are displayed in reverse order relative to the order in the Wavefront .obj file.
-		cout << "OurIndices[" + to_string(Ii) + "] is " + to_string(OurIndices[Ii] + 1) + "\n";			  // Increment each DirectX formatted triangle vertex index to display it as specified on each vertex index face element line of the Wavefront .obj file using the format "f v1 v2 v3".
+		// Triangle primitive vertex indices formatted for DirectX are displayed in reverse order relative to the order in the Wavefront .obj file.
+		cout << "OurIndices[" + to_string(Ii) + "] is " + to_string(OurIndices[Ii] + 1) + "\n";			  // Increment each DirectX formatted triangle primitive vertex index to display it as specified on each vertex index face element line of the Wavefront .obj file using the format "f v1 v2 v3".
 
 		cout << "\n";
 		++Ii;
 	}
 
-	cout << "Vn: " + to_string(Vn) + "\nIn: " + to_string(In);
+	cout << "GeometricVerticesTotal: " + to_string(GeometricVerticesTotal) + "\nPrimitivesTotal: " + to_string(PrimitivesTotal);
+
+	// Terminate this program with a return code indicating success.
+	return 0;
 }
