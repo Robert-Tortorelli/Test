@@ -14,8 +14,8 @@
 // Standard Encapsulated Data and Functions for Manipulating String Data.
 #include <string>											// String class member functions stof, to_string, etc.
 
-// File I/O Stream.
-#include <fstream>											// File I/O Stream class member functions get, close, etc.
+// File Stream.
+#include <fstream>											// File stream class member functions get, close, etc.
 
 // Using Declarations and Directives.
 // Using declarations such as using std::string;   bring one identifier	 in the named namespace into scope.
@@ -59,12 +59,12 @@ int objReader(void)
 	// Local Declarations.
 	//***
 
-	ifstream obj;											// Declare the file stream object representing the Wavefront .obj file.
-	string stringtext;										// Holds one line of the file stream object representing the Wavefront .obj file.
+	ifstream obj;											// Declare the input file stream object representing the Wavefront .obj file.
+	string stringtext;										// Holds one line of the input file stream object representing the Wavefront .obj file.
 	// size_t is a type able to represent the size of any object in bytes.
 	// It is the type returned by the "sizeof" operator and is widely used in the standard library to represent sizes and counts.
-	size_t nCharCounter = 0;								// Index into a vertex element or face element in a line of the Wavefront .obj file.
-	size_t nOffset;											// Index into a line of the Wavefront .obj file.
+	size_t nCharCounter = 0;								// Index (>= 0) into a vertex element or face element in a line of the Wavefront .obj file.
+	size_t nOffset;											// Index (>= 0) into a line of the Wavefront .obj file.
 	// string::iterator is a member type that acts like a pointer to a character in a string, or an index of an array, but without assuming the container you are iterating over has the random-access capability of an array, i.e., you have container independence.
 	// It is the member type returned by many string member functions.
 	string::iterator it;									// Location within a line of the Wavefront .obj file.
@@ -102,26 +102,26 @@ int objReader(void)
 	}
 
 	// Count the total number of geometric vertices (GeometricVerticesTotal), and the total number of primitives (PrimitivesTotal), of the object specified in the Wavefront .obj file.
-	while (getline(obj, stringtext))						// Attempt to read an entire line from the file stream object obj into the string variable "stringtext".
+	while (getline(obj, stringtext))						// Attempt to read an entire line, from the input file stream object obj, into the string variable "stringtext". At eof getline becomes false and the while loop is exited.
 	{
-		// A line was successfully read from file obj.
+		// A line was successfully read from the Wavefront .obj file.
 
 		// stringtext.find(v, 0) returns the position (0 - npos) of the first character of the first match of the string v in "stringtext", starting from the default position 0. If no match is found it returns npos.
 		// npos is a constant static member value with the greatest possible value for an element of type size_t.
-		if (nOffset = stringtext.find(v, 0) != string::npos)
+		if ((nOffset = stringtext.find(v, 0)) != string::npos)
 		{
 			// A "v " geometric vertex line has been found in the Wavefront .obj file.
 
 			++GeometricVerticesTotal;						// Count the geometric vertex line that was found.
 		}
-		else if (nOffset = stringtext.find(f, 0) != string::npos)
+		else if ((nOffset = stringtext.find(f, 0)) != string::npos)
 		{
 			// A "f " face element line		has been found in the Wavefront .obj file.
 
 			++PrimitivesTotal;								// Count the face element line	   that was found.
 		}
 	}
-	// A line was not successfully read from file obj. The end of the file (eof) has been reached.
+	// A line was not successfully read from the Wavefront .obj file. The end of the file (eof) has been reached.
 
 	// End: 1. Parse the Wavefront.obj file : Count the number of occurrences of each descriptive element in the Wavefront.obj file.
 
@@ -140,15 +140,18 @@ int objReader(void)
 	//***
 
 	// Prepare to reread from the Wavefront .obj file.
-	obj.clear();											// The Wavefront .obj file has already been read to eof, so the stream's internal error state flags indicate eof. Therefore all subsequent input operations fail unless the stream's flags are first cleared to goodbit.
-	obj.seekg(0, ios::beg);									// Set the position of the next character to be read to the stream's beginning.
+	obj.clear();											// The Wavefront .obj file has already been read to eof, so the input file stream's internal error state flags indicate eof. Therefore all subsequent input operations fail unless the input file stream's flags are first cleared to goodbit.
+	obj.seekg(0, ios::beg);									// Set the position of the next character to be read to the input file stream's beginning.
 
 	// Assign values to OurVertices and OurIndices from the Wavefront .obj file.
-	while (getline(obj, stringtext))						// Attempt to read an entire line from the file stream object obj into the string variable "stringtext".
+	while (getline(obj, stringtext))						// Attempt to read an entire line, from the input file stream object obj, into the string variable "stringtext". At eof getline becomes false and the while loop is exited.
 	{
 		// A line was successfully read from file obj.
 
-		if (nOffset = stringtext.find(v, 0) != string::npos)
+		// ++nOffset in the following for loops:
+		// Keywords "v " and "f " are expected in column 1 (offset 0, as returned by the find function) of the line. This program expects any associated values (such as vertex data) starting in column 3 (offset 2). Therefore, nOffset is incremented, before entering each of the following two for loops, to point to column 2 (offset 1), where a " " is expected. As a result, after nOffset is first incremented inside the following for loops it is pointing to any associated values in column 3 (offset 2).
+
+		if ((nOffset = stringtext.find(v, 0)) != string::npos)
 		{
 			// A "v " geometric vertex line has been found in the Wavefront .obj file.
 
@@ -168,8 +171,8 @@ int objReader(void)
 			OurVertices[VertexNo].Color[3] = (float)((VertexNo / 4) % 2);
 
 			// Parse the current "v " vertex line in the Wavefront .obj file for vertex elements, and store them.
-			// nOffset is incremented to 2 if "v " is found in column 1.
-			// The function strtok is an alternative way to split a string into tokens.
+
+			++nOffset;
 			for (it = stringtext.begin() + ++nOffset; it != stringtext.end(); ++it)
 			{
 				if (*it != ' ')
@@ -191,7 +194,7 @@ int objReader(void)
 						//*** case 2 may execute ***
 					case 2:	OurVertices[VertexNo].Y = stof(tempchar);
 						break;
-						//*** case 3 will never execute ***
+						//*** case 3 will never execute (because end of line, not ' ', indicates the 3rd element) ***
 					case 3:	OurVertices[VertexNo].Z = stof(tempchar);
 						// Invert each vertices' Z coordinate.
 						OurVertices[VertexNo].Z = OurVertices[VertexNo].Z * -1.0f;
@@ -210,10 +213,10 @@ int objReader(void)
 
 			switch (VertexElementNo)
 			{
-				//*** case 1 will never execute ***
+				//*** case 1 will never execute (because ' ', not end of line, indicates the 1st or 2nd element) ***
 			case 1:	OurVertices[VertexNo].X = stof(tempchar);
 				break;
-				//*** case 2 will never execute ***
+				//*** case 2 will never execute (because ' ', not end of line, indicates the 1st or 2nd element) ***
 			case 2:	OurVertices[VertexNo].Y = stof(tempchar);
 				break;
 				//*** case 3 may execute ***
@@ -229,11 +232,12 @@ int objReader(void)
 			nCharCounter = 0;
 			// Get another line from the while loop.
 		}
-		else if (nOffset = stringtext.find(f, 0) != string::npos)
+		else if ((nOffset = stringtext.find(f, 0)) != string::npos)
 		{
 			// A "f " face element line		has been found in the Wavefront .obj file.
 
 			// Parse the current "f " face line in the Wavefront .obj file for face elements, and store them.
+			++nOffset;
 			for (it = stringtext.begin() + ++nOffset; it != stringtext.end(); ++it)
 			{
 				if (*it != ' ' && *it != '/')
