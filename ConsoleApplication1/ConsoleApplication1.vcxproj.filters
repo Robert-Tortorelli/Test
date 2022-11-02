@@ -31,7 +31,7 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="Text.obj" />
-    <Text Include="Text - C.obj" />
+    <None Include="Text.obj" />
+    <None Include="Text - C.obj" />
   </ItemGroup>
 </Project>

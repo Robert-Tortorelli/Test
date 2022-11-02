@@ -79,9 +79,10 @@ int objReader(void)
 
 	// Variables used to track which vertex and vertex element is being parsed in the Wavefront .obj file.
 	int VertexNo = -1;										// The number of the vertex being parsed, counting from 0. This corresponds to the vertex index (>= 0), a face element.
-	int VertexElementNo;									// The number of the vertex element of the vertex being parsed: x (VertexElementNo = 1), y (VertexElementNo = 2) or z (VertexElementNo = 3).
+	int VertexElementNo;									// The number of the vertex element of the vertex being parsed: x (VertexElementNo = 1), y (VertexElementNo = 2) or z (VertexElementNo = 3). It is reset for each vertex parsed.
 
 	// Variables used to track which face and face element is being parsed in the Wavefront .obj file.
+	// Face numbers (face element lines) are not counted or otherwise tracked. This is because only the vertex index, a face element, is stored and used.
 	int FaceElementNo = 0;									// The number of the vertex index, a face element, being parsed, counting from 0. It's counted relative to the first vertex index of the first face, sequentially across all faces. Its final value is one greater than the final value used.
 
 	// End: Local Declarations.
@@ -155,10 +156,56 @@ int objReader(void)
 		{
 			// A "v " geometric vertex line has been found in the Wavefront .obj file.
 
-			++VertexNo;										// We are parsing a new Vertex.
-			VertexElementNo = 1;							// We are parsing the first vertex element, X, of a new Vertex.
+			// Parse the current "v " geometric vertex line in the Wavefront .obj file for vertex elements, and store them.
 
-			// Initialize the Vertex's Color using an arbitrary formula:
+			++VertexNo;										// We are parsing a single new vertex in the line read.
+			VertexElementNo = 1;							// We are parsing the first of three vertex elements, X, of the new Vertex.
+
+			++nOffset;										// nOffset is incremented, before entering the following for loop, to point to column 2 (offset 1), where a " " is expected. As a result, after nOffset is first incremented inside the following for loop it is pointing to any associated values in column 3 (offset 2).
+			for (it = stringtext.begin() + ++nOffset; it != stringtext.end(); ++it)
+			{
+				// End of line not yet reached, which indicates a vertex element is being processed.
+
+				if (*it != ' ')
+				{
+					// Not ' ' indicates a digit of a vertex element. Initially *it is pointing to the first non-blank value after "v ".
+					// Save characters of the vertex element in "tempchar". Then update "tempchar's" array element pointer.
+
+					tempchar[nCharCounter] = *it;
+					++nCharCounter;
+				}
+				else
+				{
+					// ' ' char detected, which indicates a complete vertex element has been read into "tempchar". Assign "tempchar" to the correct vertex element of OurVertices[].
+
+					// ' ' indicates the 1st or 2nd vertex element has been read into "tempchar".
+					// Store the vertex element.
+					switch (VertexElementNo)
+					{
+					case 1:	OurVertices[VertexNo].X = stof(tempchar);
+						break;
+					case 2:	OurVertices[VertexNo].Y = stof(tempchar);
+						break;
+					}
+
+					// Prepare to parse the next vertex element.
+					// Clear "tempchar" with the null-terminator.
+					fill(tempchar, tempchar + MAX_ELEMENT_SIZE, '\0');
+					// Reset "tempchar's" array element pointer.
+					nCharCounter = 0;
+					// Prepare to parse the next vertex element, y or z.
+					++VertexElementNo;
+				}
+			}
+			// End of line reached, which indicates this line's final complete vertex element has been read into "tempchar". Assign "tempchar" to the correct vertex element of OurVertices[].
+
+			// End of line indicates the 3rd vertex element has been read into "tempchar".
+			// Store the vertex element.
+			OurVertices[VertexNo].Z = stof(tempchar);
+			// Convert (invert) the Wavefront .obj vertices' Z coordinate for DirectX. *** Invert the Wavefront .obj vertices' Z coordinate ***
+			OurVertices[VertexNo].Z = OurVertices[VertexNo].Z * -1.0f;
+
+			// Initialize the vertex's Color using an arbitrary formula:
 			// Color[x] is 0 or 1 because (n MOD 2) is 0 or 1 for any integer n.
 			// Suppress: "Warning C6386 Buffer overrun while writing to 'OurVertices'. Invalid write to 'OurVertices[1]', (writable range is 0 to 0)"
 			#pragma warning(suppress : 6386)
@@ -170,83 +217,32 @@ int objReader(void)
 			OurVertices[VertexNo].Color[2] = (float)((VertexNo / 3) % 2);
 			OurVertices[VertexNo].Color[3] = (float)((VertexNo / 4) % 2);
 
-			// Parse the current "v " vertex line in the Wavefront .obj file for vertex elements, and store them.
-
-			++nOffset;
-			for (it = stringtext.begin() + ++nOffset; it != stringtext.end(); ++it)
-			{
-				if (*it != ' ')
-				{
-					// Not ' ' indicates a digit of a vertex element. Initially *it is pointing to the first non-blank value after "v ".
-
-					tempchar[nCharCounter] = *it;
-					++nCharCounter;
-				}
-				else
-				{
-					// ' ' char detected, which indicates a complete vertex element has been read into "tempchar".
-
-					switch (VertexElementNo)
-					{
-						//*** case 1 may execute ***
-					case 1:	OurVertices[VertexNo].X = stof(tempchar);
-						break;
-						//*** case 2 may execute ***
-					case 2:	OurVertices[VertexNo].Y = stof(tempchar);
-						break;
-						//*** case 3 will never execute (because end of line, not ' ', indicates the 3rd element) ***
-					case 3:	OurVertices[VertexNo].Z = stof(tempchar);
-						// Invert each vertices' Z coordinate.
-						OurVertices[VertexNo].Z = OurVertices[VertexNo].Z * -1.0f;
-						break;
-					}
-
-					// Clear "tempchar" with the null-terminator.
-					fill(tempchar, tempchar + MAX_ELEMENT_SIZE, '\0');
-					// Reset "tempchar's" array element pointer.
-					nCharCounter = 0;
-					// Prepare to parse the next vertex element, y or z.
-					++VertexElementNo;
-				}
-			}
-			// End of line reached, which indicates this line's final complete vertex element has been read into "tempchar".
-
-			switch (VertexElementNo)
-			{
-				//*** case 1 will never execute (because ' ', not end of line, indicates the 1st or 2nd element) ***
-			case 1:	OurVertices[VertexNo].X = stof(tempchar);
-				break;
-				//*** case 2 will never execute (because ' ', not end of line, indicates the 1st or 2nd element) ***
-			case 2:	OurVertices[VertexNo].Y = stof(tempchar);
-				break;
-				//*** case 3 may execute ***
-			case 3:	OurVertices[VertexNo].Z = stof(tempchar);
-				// Invert each vertices' Z coordinate.
-				OurVertices[VertexNo].Z = OurVertices[VertexNo].Z * -1.0f;
-				break;
-			}
-
+			// Prepare to parse the next vertex.
 			// Clear "tempchar" with the null-terminator.
 			fill(tempchar, tempchar + MAX_ELEMENT_SIZE, '\0');
 			// Reset "tempchar's" array element pointer.
 			nCharCounter = 0;
-			// Get another line from the while loop.
+
+			// The current "v " geometric vertex line has been parsed. Get another line from the while loop.
 		}
 		else if ((nOffset = stringtext.find(f, 0)) != string::npos)
 		{
 			// A "f " face element line		has been found in the Wavefront .obj file.
 
-			// Parse the current "f " face line in the Wavefront .obj file for face elements, and store them.
-			++nOffset;
+			// Parse the current "f " face element line in the Wavefront .obj file for face elements, and store them.
+
+			++nOffset;										// nOffset is incremented, before entering the following for loop, to point to column 2 (offset 1), where a " " is expected. As a result, after nOffset is first incremented inside the following for loop it is pointing to any associated values in column 3 (offset 2).
 			for (it = stringtext.begin() + ++nOffset; it != stringtext.end(); ++it)
 			{
+				// End of line not yet reached, which indicates a face element is being processed.
+
 				if (*it != ' ' && *it != '/')
 				{
 					// Not ' ' AND Not '/' indicates a digit of a face element.
 
 					if (ignoreFlag == 0)
 					{
-						// Save characters of the face element, as it's a vertex index.
+						// Save characters of the face element, as it's a vertex index, in "tempchar". Then update "tempchar's" array element pointer.
 
 						tempchar[nCharCounter] = *it;
 						++nCharCounter;
@@ -257,43 +253,59 @@ int objReader(void)
 					// ' ' OR '/' char detected:
 					// ' ' demarks a vertex index, or	a vertex Texture Coordinate Index, or		a vertex Normal Index.
 					// '/' demarks a vertex index, or	a vertex Texture Coordinate Index, but not	a vertex Normal Index.
-					// '/' indicates					a vertex Texture Coordinate Index, or		a vertex Normal Index follows.
+					// '/' indicates either				a vertex Texture Coordinate Index, or		a vertex Normal Index follows.
 
 					if (*it == ' ')
 					{
-						// ' ' char detected, which indicates a complete face element, a vertex index, has been read into "tempchar" (ignoreFlag ensures "tempchar" only holds a vertex index).
+						// ' ' char detected, which indicates a complete face element, a vertex index, has been read into "tempchar" (ignoreFlag ensures "tempchar" only holds a vertex index). Assign "tempchar" to the correct OurIndices[].
 
-						// Convert (reverse) the triangle primitive drawing order from counter-clockwise (used by the Wavefront .obj specification) to clockwise (used by DirectX).
-						// "OurIndices[FaceElementNo] = strtol(tempchar, NULL, 10);"			// Store the face element, a vertex index.																					   *** Order of vertices is unchanged ***
-						OurIndices[(PrimitivesTotal * 3) - FaceElementNo - 1] = strtol(tempchar, NULL, 10);	// Store the face element, a vertex index.																		   *** Order of vertices is reversed  ***
-						// --OurIndices[FaceElementNo];											// DirectX index buffer values start with 0, while the equivalent Wavefront .obj face index values start with 1. Decrement it. *** Order of vertices is unchanged ***
-						--OurIndices[(PrimitivesTotal * 3) - FaceElementNo - 1];				// DirectX index buffer values start with 0, while the equivalent Wavefront .obj face index values start with 1. Decrement it. *** Order of vertices is reversed  ***
-						fill(tempchar, tempchar + MAX_ELEMENT_SIZE, '\0');						// Clear "tempchar" with the null-terminator.
-						nCharCounter = 0;														// Reset "tempchar's" array element pointer.
-						ignoreFlag = 0;															// Reset the flag indicator to save characters of the face element, as it's a vertex index.
-						++FaceElementNo;														// Prepare to parse the next face element.
+						// Store the face element, a vertex index.
+						// Convert (reverse) the triangle primitive drawing order from counter-clockwise (used by the Wavefront .obj specification) to clockwise (used by DirectX). *** Reverse the Wavefront .obj order of vertices ***
+						OurIndices[(PrimitivesTotal * 3) - FaceElementNo - 1] = strtol(tempchar, NULL, 10);
+						// Wavefront .obj face index values start with 1, while the equivalent DirectX index buffer values start with 0.											*** Decrement the Wavefront .obj face index values ***
+						--OurIndices[(PrimitivesTotal * 3) - FaceElementNo - 1];
+
+						// Prepare to parse the next face element.
+						// Clear "tempchar" with the null-terminator.
+						fill(tempchar, tempchar + MAX_ELEMENT_SIZE, '\0');
+						// Reset "tempchar's" array element pointer.
+						nCharCounter = 0;
+						// Reset the flag indicator to save characters of a face element.
+						ignoreFlag = 0;
+						// Prepare to parse the next face element.
+						++FaceElementNo;
 					}
 					else
 					{
 						// '/' char detected, which indicates a vertex Texture Coordinate Index or a vertex Normal Index follows. We are only interested in a vertex index.
 
-						ignoreFlag = 1;															// Set the flag indicator to not save characters of the face element, because it's not a vertex index.
+						// Set the flag indicator to not save characters of the face element, because it's not a vertex index.
+						ignoreFlag = 1;
 					}
 				}
 			}
-			// End of line reached, which indicates this line's final complete face element has been read into "tempchar".
+			// End of line reached, which indicates this line's final complete face element has been read into "tempchar". Assign "tempchar" to the correct OurIndices[].
 
-			// Convert (reverse) the triangle primitive drawing order from counter-clockwise (used by the Wavefront .obj specification) to clockwise (used by DirectX).
-			// "OurIndices[FaceElementNo] = strtol(tempchar, NULL, 10);"						// Store the face element, a vertex index.																					   *** Order of vertices is unchanged ***
-			OurIndices[(PrimitivesTotal * 3) - FaceElementNo - 1] = strtol(tempchar, NULL, 10);	// Store the face element, a vertex index.																					   *** Order of vertices is reversed  ***
-			// --OurIndices[FaceElementNo];														// DirectX index buffer values start with 0, while the equivalent Wavefront .obj face index values start with 1. Decrement it. *** Order of vertices is unchanged ***
-			--OurIndices[(PrimitivesTotal * 3) - FaceElementNo - 1];							// DirectX index buffer values start with 0, while the equivalent Wavefront .obj face index values start with 1. Decrement it. *** Order of vertices is reversed  ***
-			fill(tempchar, tempchar + MAX_ELEMENT_SIZE, '\0');									// Clear "tempchar" with the null-terminator.
-			nCharCounter = 0;																	// Reset "tempchar's" array element pointer.
-			ignoreFlag = 0;																		// Reset the flag indicator to save characters of a face element.
-			++FaceElementNo;																	// Prepare to parse the next face element. Because it's incremented when the end of the line is reached, its final value is one greater than the final value used.
-			// Get another line from the while loop.
+			// Store the face element, a vertex index.
+			// Convert (reverse) the triangle primitive drawing order from counter-clockwise (used by the Wavefront .obj specification) to clockwise (used by DirectX). *** Reverse the Wavefront .obj order of vertices ***
+			OurIndices[(PrimitivesTotal * 3) - FaceElementNo - 1] = strtol(tempchar, NULL, 10);
+			// Wavefront .obj face index values start with 1, while the equivalent DirectX index buffer values start with 0.											*** Decrement the Wavefront .obj face index values ***
+			--OurIndices[(PrimitivesTotal * 3) - FaceElementNo - 1];
+
+			// Prepare to parse the next face element.
+			// Clear "tempchar" with the null-terminator.
+			fill(tempchar, tempchar + MAX_ELEMENT_SIZE, '\0');
+			// Reset "tempchar's" array element pointer.
+			nCharCounter = 0;
+			// Reset the flag indicator to save characters of a face element.
+			ignoreFlag = 0;
+			// Prepare to parse the next face element. Because it's incremented when the end of the line is reached, its final value is one greater than the final value used.
+			++FaceElementNo;
+
+			// The current "f " face element line has been parsed. Get another line from the while loop.
 		}
+
+		// Get another line from the while loop.
 	}
 
 	// Close the Wavefront .obj file.
