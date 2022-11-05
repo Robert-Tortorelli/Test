@@ -32,6 +32,11 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <None Include="Text.original.obj">
+      <FileType>Document</FileType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
     <None Include="Text.obj">
       <FileType>Document</FileType>
     </None>

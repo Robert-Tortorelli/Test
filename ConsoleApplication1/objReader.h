@@ -24,7 +24,6 @@
 struct VERTEX
 {
 	float X, Y, Z;
-	float Color[4];
 };
 
 //***

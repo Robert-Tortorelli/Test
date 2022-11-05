@@ -58,11 +58,6 @@ int main()
 		cout << "OurVertices[" + to_string(Vi) + "].Y is "		  + to_string(OurVertices[Vi].Y) + "\n";
 		cout << "OurVertices[" + to_string(Vi) + "].Z is "		  + to_string(-OurVertices[Vi].Z) + "\n"; // Invert each DirectX formatted object geometric vertex's Z coordinate (i.e., -OurVertices[Vi].Z) to display it as specified on each object geometric vertex of the Wavefront .obj file using the format "v X, Y, Z".
 
-		cout << "OurVertices[" + to_string(Vi) + "].Color[0] is " + to_string(OurVertices[Vi].Color[0]) + " from OurVertices element no. / 1 (" + to_string(Vi/1) + ") mod 2 (" + to_string((Vi/1) % 2) + ")\n";
-		cout << "OurVertices[" + to_string(Vi) + "].Color[1] is " + to_string(OurVertices[Vi].Color[1]) + " from OurVertices element no. / 2 (" + to_string(Vi/2) + ") mod 2 (" + to_string((Vi/2) % 2) + ")\n";
-		cout << "OurVertices[" + to_string(Vi) + "].Color[2] is " + to_string(OurVertices[Vi].Color[2]) + " from OurVertices element no. / 3 (" + to_string(Vi/3) + ") mod 2 (" + to_string((Vi/3) % 2) + ")\n";
-		cout << "OurVertices[" + to_string(Vi) + "].Color[3] is " + to_string(OurVertices[Vi].Color[3]) + " from OurVertices element no. / 4 (" + to_string(Vi/4) + ") mod 2 (" + to_string((Vi/4) % 2) + ")\n";
-
 		cout << "\n";
 		++Vi;
 	}
