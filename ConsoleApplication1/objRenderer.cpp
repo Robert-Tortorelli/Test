@@ -592,19 +592,19 @@ void InitPipeline(void)
 	ied[0].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;	// Assigned a value specifying the input data slot class for a single input slot. A value of the D3D11_INPUT_CLASSIFICATION enumerated type, i.e., D3D11_INPUT_PER_VERTEX_DATA:	   Input data is per-vertex data.
 	ied[0].InstanceDataStepRate = 0;						// Assigned a value specifying the number of instances to draw using the same per-instance data before advancing in the buffer by one element. This value must be 0 for an element that contains per-vertex data (the slot class is set to D3D11_INPUT_PER_VERTEX_DATA).
 
-	// Define the color    input element of the VERTEX structure OurVertices.
-	ied[1].SemanticName = "COLOR";							// Assigned a value specifying the HLSL semantic name associated with this element in a shader input signature.
+	// Define the normal   input element of the VERTEX structure OurVertices.
+	ied[1].SemanticName = "NORMAL";							// Assigned a value specifying the HLSL semantic name associated with this element in a shader input signature.
 	ied[1].SemanticIndex = 0;								// Assigned a value specifying the semantic index for the element. A semantic index modifies a semantic with an integer index number. A semantic index is only needed in a case where there is more than one element with the same semantic name.
-	ied[1].Format = DXGI_FORMAT_R32G32B32A32_FLOAT;			// Assigned a value specifying the data type of the element.					  A value of the DXGI_FORMAT enumerated type,				 i.e., DXGI_FORMAT_R32G32B32A32_FLOAT: A four-component, 128-bit floating-point format that supports 32 bits per channel including alpha.
+	ied[1].Format = DXGI_FORMAT_R32G32B32_FLOAT;			// Assigned a value specifying the data type of the element.					  A value of the DXGI_FORMAT enumerated type,				 i.e., DXGI_FORMAT_R32G32B32_FLOAT:	   A three-component, 96-bit floating-point format that supports 32 bits per color channel.
 	ied[1].InputSlot = 0;									// Assigned a value specifying the integer value that identifies the input-assembler (see input slot).
-	ied[1].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;// Assigned a value specifying the optional offset (in bytes) from the start of the vertex. Use D3D11_APPEND_ALIGNED_ELEMENT for convenience to define the current element directly after the previous one, including any packing if necessary. Color has an offset of 12 in this program.
+	ied[1].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;// Assigned a value specifying the optional offset (in bytes) from the start of the vertex. Use D3D11_APPEND_ALIGNED_ELEMENT for convenience to define the current element directly after the previous one, including any packing if necessary. Normal has an offset of 12 in this program.
 	ied[1].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;	// Assigned a value specifying the input data slot class for a single input slot. A value of the D3D11_INPUT_CLASSIFICATION enumerated type, i.e., D3D11_INPUT_PER_VERTEX_DATA:	   Input data is per-vertex data.
 	ied[1].InstanceDataStepRate = 0;						// Assigned a value specifying the number of instances to draw using the same per-instance data before advancing in the buffer by one element. This value must be 0 for an element that contains per-vertex data (the slot class is set to D3D11_INPUT_PER_VERTEX_DATA).
 
 	// ID3D11Device::CreateInputLayout member function:
 	//   Create the input-layout object to describe the input-buffer data for the input-assembler stage of the graphics pipeline.
-	dev->CreateInputLayout(ied,								// An array of the input-assembler stage input data types, in this case POSITION and COLOR, used to define the input-layout object. Each input data type is described by an element description.
-		2,													// The number of input data types in the array, in this case 2 (POSITION and COLOR), used to define the input-layout object.
+	dev->CreateInputLayout(ied,								// An array of the input-assembler stage input data types, in this case POSITION and NORMAL, used to define the input-layout object. Each input data type is described by an element description.
+		2,													// The number of input data types in the array, in this case 2 (POSITION and NORMAL), used to define the input-layout object.
 		VS->GetBufferPointer(),								// Pointer to the compiled shader.
 		VS->GetBufferSize(),								// Size of the compiled shader.
 		&pLayout);											// &pLayout is the address of a pointer, pLayout, to an input-layout ID3D11InputLayout interface.

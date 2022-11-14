@@ -1,5 +1,5 @@
 //***
-// This project's "objRenderer" files are the latest versions and are intended to replace those in the project located at "repo\DirectX\objRenderer".
+// This project's "objRenderer" files, including related files such as .hlsl and .obj files, are the latest versions and are intended to replace those in the project located at "repo\DirectX\objRenderer".
 // This project's objRenderer.cpp file cannot be tested under this project, because it is a Windows app and this is a console project.
 //
 // The primary source code files located at "repo\DirectX\objRenderer" are temporarily READ-ONLY.

@@ -35,4 +35,7 @@
     <None Include="Text - C.obj" />
     <None Include="Text.obj" />
   </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="shaders.hlsl" />
+  </ItemGroup>
 </Project>

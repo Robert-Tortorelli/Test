@@ -23,7 +23,9 @@
 // Declare the VERTEX structure with a member list representing the vertex elements of one vertex of the object.
 struct VERTEX
 {
-	float X, Y, Z;
+	float X, Y, Z;											// Geometric vertex
+	float vnX, vnY, vnZ;									// Vertex normal
+	float vtU, vtV, vtW;									// Texture coordinate
 };
 
 //***
