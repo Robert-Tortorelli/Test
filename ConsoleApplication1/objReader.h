@@ -20,12 +20,20 @@
 // DWORD Header File.
 #include <IntSafe.h>										// Required for the DWORD data type. Note the main objRenderer program (with the WinMain function) includes the larger windows.h, containing IntSafe.h, instead.
 
-// Declare the VERTEX structure with a member list representing the vertex elements of one vertex of the object.
+// Declare the VERTEX named structure data type with a member list representing the vertex elements of one vertex of the object.
+// Note, this structure's members could have been declared as a XMFLOAT3 structure instead of as 3 floats, e.g., 
+// struct VERTEX
+// {
+//     float X, Y, Z;
+//     XMFLOAT3 VertexNormal;								// OurVertices.VertexNormal.x			 is the same as OurVertices.vnX.
+//     XMFLOAT3 VertexTextureCoordinate;					// OurVertices.VertexTextureCoordinate.x is the same as OurVertices.vtU.
+// };
+// extern VERTEX* OurVertices
 struct VERTEX
 {
-	float X, Y, Z;											// Geometric vertex
-	float vnX, vnY, vnZ;									// Vertex normal
-	float vtU, vtV, vtW;									// Texture coordinate
+	float X, Y, Z;											// Geometric vertex.
+	float vnX, vnY, vnZ;									// Vertex normal.
+	float vtU, vtV, vtW;									// Vertex texture coordinate.
 };
 
 //***

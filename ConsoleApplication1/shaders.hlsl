@@ -74,15 +74,14 @@ struct VOut
 
 // VShader function: Definition
 // This function is the vertex shader function.
-// This shader is executed for each vertex in the scene.
-// This shader operates on vertex buffer elements provided to it by the calling program and at a minimum returns a 4-component position vector that will be rasterized into a pixel position.
-// Optionally, this shader can output texture coordinates, vertex color, vertex lighting, fog factors, and other characteristics of a single vertex.
+// A vertex shader function is executed once for each vertex.
+// A vertex shader function always operates on a single input vertex and produces a single output vertex.
+//   This particular vertex shader function returns multiple variables, position and color. Therefore it does return a struct, and consequently it specifies the associated semantics in that struct's definition, i.e., SV_POSITION and COLOR.
+// Optionally, this shader can output vertex texture coordinates, vertex color, vertex lighting, fog factors, and other characteristics of a single vertex.
 //
-// The number of times the vertex shader has been executed can be queried from the CPU using the VSInvocations pipeline statistic.
+// The number of times a vertex shader has been executed can be queried from the CPU using the VSInvocations pipeline statistic.
 //
 // When passing multiple variables between shader functions, they must be passed in the same order, e.g., position first; color second.
-//
-// The vertex shader function returns multiple variables, position and color. Therefore it does return a struct, but it does not specify its own semantic, i.e., SV_POSITION.
 //
 // Semantics:
 // POSITION:    Vertex position in 3D space.                                                                    -> Vertex shader
@@ -105,16 +104,15 @@ VOut VShader(float4 position : POSITION, float4 normal : NORMAL)
 
 // PShader function: Definition
 // This function is the pixel shader function.
-// This shader is also known as a fragment shader.
-// This shader is executed for each pixel (fragment) in the render target.
-// This shader receives rasterized coordinates from previous shader stages (in the simplest pipelines, this would be the vertex shader) and at a minimum returns a color (or other 4-component value) for that pixel position, which is then written into a render target.
-// Optionally, this shader can output the color, brightness, contrast, and other characteristics of a single pixel.
+// A pixel shader function is also known as a fragment shader function.
+// A pixel shader function is executed once for each pixel (fragment).
+// A pixel shader function's inputs are interpolated from the vertex attributes of the primitive being rasterized, based on the interpolation mode declared.
+// A pixel shader function's output is color.
+//   This particular pixel shader function returns a single variable, color. Therefore it does not return a struct, and consequently it specifies the associated semantic in the pixel shader function's definition, i.e., SV_TARGET.
 //
-// The number of times the pixel shader has been executed can be queried from the CPU using the PSInvocations pipeline statistic.
+// The number of times a pixel shader function has been executed can be queried from the CPU using the PSInvocations pipeline statistic.
 //
 // When passing multiple variables between shader functions, they must be passed in the same order, e.g., position first; color second.
-//
-// The pixel shader function returns a single variable, position or color, in this case color. Therefore it does not return a struct, and it does specify its own semantic, i.e., SV_TARGET.
 //
 // Semantics:
 // SV_POSITION: Vertex position in screen space (2D space: Between 1 and -1 on the X and Y axes).                                  Vertex shader -> Pixel shader

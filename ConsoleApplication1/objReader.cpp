@@ -239,9 +239,9 @@ int objReader(void)
 				else
 				{
 					// ' ' OR '/' char detected:
-					// ' ' demarks a vertex index, or	a vertex Texture Coordinate Index, or		a vertex Normal Index.
-					// '/' demarks a vertex index, or	a vertex Texture Coordinate Index, but not	a vertex Normal Index.
-					// '/' indicates either				a vertex Texture Coordinate Index, or		a vertex Normal Index follows.
+					// ' ' demarks a vertex index, or	a vertex texture coordinate index, or		a vertex normal index.
+					// '/' demarks a vertex index, or	a vertex texture coordinate index, but not	a vertex normal index.
+					// '/' indicates either				a vertex texture coordinate index, or		a vertex normal index follows.
 
 					if (*it == ' ')
 					{
@@ -265,7 +265,7 @@ int objReader(void)
 					}
 					else
 					{
-						// '/' char detected, which indicates a vertex Texture Coordinate Index or a vertex Normal Index follows. We are only interested in a vertex index.
+						// '/' char detected, which indicates a vertex texture coordinate index or a vertex normal index follows. We are only interested in a vertex index.
 
 						// Set the flag indicator to not save characters of the face element, because it's not a vertex index.
 						ignoreFlag = 1;

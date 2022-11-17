@@ -512,7 +512,7 @@ void InitPipeline(void)
 	//    Vertex shader:
 	//      This shader is executed for each vertex in the scene.
 	//      This shader operates on vertex buffer elements provided to it by the calling program (this program) and at a minimum returns a 4-component position vector that will be rasterized into a pixel position.
-	//      Optionally, this shader can output texture coordinates, vertex color, vertex lighting, fog factors, and other characteristics of a single vertex.
+	//      Optionally, this shader can output vertex texture coordinates, vertex color, vertex lighting, fog factors, and other characteristics of a single vertex.
 	//    Pixel shader:
 	//      This shader is also known as a fragment shader.
 	//      This shader is executed for each pixel (fragment) in the render target.
@@ -623,7 +623,7 @@ void InitPipeline(void)
 	//      A constant buffer can be a structure containing multiple constants. The order and size of these structure's members must match in both C++ and HLSL.
 	//      Any one constant (structure member) cannot be split between two 16-byte areas of memory. Therefore, if the first constant in the structure is less than 16 bytes then the second constant will be aligned on the next 16-byte boundary. When it occurs, this automatic alignment must be accounted for in the C++ constant buffer structure in C++, otherwise it will not match the HLSL constant buffer structure, even if their code looks identical.
 	//
-	//      In this program, the final transform matrix, matFinal, is a C++ structure matching the constant buffer, which is a HLSL structure. They are optionally named the same in C++ and HLSL.
+	//      In this program, the final transform matrix, matFinal, and the rotation matrix, matRotateY, are two of the members of the C++ structure matching the constant buffer, which is a HLSL structure. These structures and their members are optionally named the same in C++ and HLSL.
 	//      matFinal is copied to the constant buffer pointed to by pCBuffer using the ID3D11DeviceContext::UpdateSubresource member function.
 	//      Copying to the constant buffer always provides		  position information for the object rendered, as it does in this program.
 	//      Copying to the constant buffer may optionally provide scene    information for the object rendered, such as lighting information, timing information, among other details.
@@ -836,8 +836,18 @@ void RenderFrame(void)
 	//		Using the HLSL constant buffer is efficient, as multiplication is performed by the GPU's vertex shader.
 	//***
 
-	// Declare all transformation matrices.
-	XMMATRIX matRotateY, matWorld, matView, matProjection, matFinal;
+	// Declare the ConstantBuffer structure variable to assign values to the constant buffer.
+	struct
+	{
+		XMMATRIX matFinal;
+		XMMATRIX matRotateY;
+		XMFLOAT4 LightVector;
+		XMFLOAT4 LightColor;
+		XMFLOAT4 AmbientColor;
+	} ConstantBuffer;
+
+	// Declare transformation matrices that are not part of the constant buffer.
+	XMMATRIX matWorld, matView, matProjection;
 
 	// Define the world matrix, matWorld.
 	//   matWorld is, in this program, defined solely in terms of the rotation matrix, matRotateY.
@@ -845,8 +855,8 @@ void RenderFrame(void)
 	// XMMatrixRotationY function:
 	//   Builds a matrix that rotates around the y-axis.
 	static float Angle = 0.0f; Angle += 0.001f;
-	matRotateY = XMMatrixRotationY(Angle);					// Angle of rotation around the y-axis, in radians. Angles are measured clockwise when looking along the rotation axis toward the origin.
-	matWorld = matRotateY;									// The world transform is a function of translation (movement), rotation, and scaling. In this program, only rotation is used.
+	ConstantBuffer.matRotateY = XMMatrixRotationY(Angle);					// Angle of rotation around the y-axis, in radians. Angles are measured clockwise when looking along the rotation axis toward the origin.
+	matWorld = ConstantBuffer.matRotateY;									// The world transform is a function of translation (movement), rotation, and scaling. In this program, only rotation is used.
 
 	// Define the view matrix, matView.
 	// XMMatrixLookAtLH function:
@@ -880,7 +890,7 @@ void RenderFrame(void)
 		FarZ);												// Distance to the far clipping plane. Must be greater than zero.
 
 	// Define the final transform matrix, matFinal.
-	matFinal = matWorld * matView * matProjection;
+	ConstantBuffer.matFinal = matWorld * matView * matProjection;
 
 	// End: 1. Define the final transform matrix, matFinal, which contains all the information necessary to transform each vertex of the object being rendered.
 
@@ -963,7 +973,7 @@ void RenderFrame(void)
 	devcon->UpdateSubresource(pCBuffer,						// A pointer to the destination resource, in this case the constant buffer interface.
 		0,													// A zero-based index that identifies the destination subresource.
 		0,													// A pointer to a box that defines the portion of the destination subresource to copy the resource data into. For a constant buffer, set this parameter to NULL, as it is not possible to use this member function to partially update a constant buffer.
-		&matFinal,											// &matFinal is the address of matFinal, and therefore a pointer to the source data in memory, in this case the final transform matrix.
+		&ConstantBuffer.matFinal,											// &matFinal is the address of matFinal, and therefore a pointer to the source data in memory, in this case the final transform matrix.
 		0,													// The size of one row of the source data.
 		0);													// The size of one depth slice of source data.
 
@@ -980,17 +990,17 @@ void RenderFrame(void)
 	XMMATRIX matTranslateY = XMMatrixTranslation(0.0f, 3.0f, 0.0f);
 	// Rotate the second instance of the object counterclockwise.
 	static float Angle2 = 0.0f; Angle2 -= 0.001f;
-	matRotateY = XMMatrixRotationY(Angle2);
+	ConstantBuffer.matRotateY = XMMatrixRotationY(Angle2);
 	// Update the world matrix, matWorld, by multiplying the new translation matrix by the updated rotation matrix.
-	matWorld = matTranslateY * matRotateY;
+	matWorld = matTranslateY * ConstantBuffer.matRotateY;
 	// Update the final transform matrix, matFinal, by multiplying the new world matrix by the original view and projection matrices.
-	matFinal = matWorld * matView * matProjection;
+	ConstantBuffer.matFinal = matWorld * matView * matProjection;
 	//
 	// Update the constant buffer with the updated final transform matrix.
 	devcon->UpdateSubresource(pCBuffer,						// A pointer to the destination resource, in this case the constant buffer interface.
 		0,													// A zero-based index that identifies the destination subresource.
 		0,													// A pointer to a box that defines the portion of the destination subresource to copy the resource data into. For a constant buffer, set this parameter to NULL, as it is not possible to use this member function to partially update a constant buffer.
-		&matFinal,											// &matFinal is the address of matFinal, and therefore a pointer to the source data in memory, in this case the final transform matrix.
+		&ConstantBuffer.matFinal,											// &matFinal is the address of matFinal, and therefore a pointer to the source data in memory, in this case the final transform matrix.
 		0,													// The size of one row of the source data.
 		0);													// The size of one depth slice of source data.
 	//
