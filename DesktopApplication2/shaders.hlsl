@@ -26,7 +26,7 @@
 // Declarations: Start
 
 // All variables and functions coded in HLSL (.hlsl files) are stored in GPU memory.
-// All variables and functions coded in C++ (.cpp files) are stored in CPU memory.
+// All variables and functions coded in C++  (.cpp  files) are stored in CPU memory.
 
 // Vector variables store between one and four    scalar values and are declared by placing a   number                     at the end of the type, 
 // e.g., a vector variable named "color"  containing four float scaler values can be declared and defined using 
@@ -44,19 +44,21 @@
 //                            3.0f, 4.0f); // row 2
 //
 // HLSL variables may be larger than the corresponding C++ variables used to indirectly (by way of the vertex buffer) assign them data.
-// For example, a HLSL float4 variable, such as "position" in "float4 position : SV_POSITION;", is assigned values from the vertex buffer that were copied to the vertex buffer from the smaller C++ variable OurVertices. OurVertices only specifies three floats for vertex position and they are assigned to the first three floats of "position", leaving the last float of "position" undefined.
+// For example, a HLSL float4 variable, such as "position" in "float4 position : POSITION;" is assigned values from the vertex buffer, that were originally copied to the vertex buffer (using C++), from the smaller C++ variable OurVertices. OurVertices only specifies three floats for vertex position and they are assigned to the first three floats of "position", leaving the last float of "position" undefined.
 
-// Declare the constant buffer structure.
+// Declare the constant buffer.
+// Note this is defined using the type cbuffer, not the type struct.
+// See the C++ constant buffer structure declaration for an explanation of these constant buffer members.
 cbuffer ConstantBuffer
 {
-	float4x4 matFinal;                                      // The final transform matrix.
-    float4x4 matRotate;                                     // The rotation matrix.
-    float4 lightvec;                                        // This variable stores the direction of the light. This direction can be represented by any vector and the light will shine in that direction.
-    float4 lightcol;                                        // This variable stores the color and brightness of the light. Any color closer to white is brighter than any color closer to black.
-    float4 ambientcol;                                      // This variable stores the color and brightness of the ambient light.
+	float4x4 matFinal;
+    float4x4 matRotate;
+    float4 LightVector;
+    float4 LightColor;
+    float4 AmbientColor;
 }
 
-// Declare the Vertex shader output struct. It is also used as the input struct for the Pixel shader.
+// Declare the Vertex shader output struct. It is sometimes also used as the input struct for the Pixel shader.
 // The program that is using the shaders defined below specifies a vertex buffer containing multiple values. Therefore multiple variables are returned by the vertex shader function.
 //
 // For the vertex shader function to return these multiple variables, it returns a struct containing multiple members, just as a C program would.
@@ -92,12 +94,12 @@ VOut VShader(float4 position : POSITION, float4 normal : NORMAL)
     VOut output;
 
     output.position = mul(matFinal, position);              // output.position with semantic SV_POSITION = f(constant buffer's matFinal, VShader parameter position with semantic POSITION)                           (Position of each vertex in 2D space is a function of the constant buffer's final matrix and the position of the pixel in 3D space)
-    output.color = ambientcol;                              // output.color    with semantic COLOR       = f(constant buffer's ambient light's color)                                                                 (Color of each vertex is set to the ambient light's color, a single color)
+    output.color = AmbientColor;                            // output.color    with semantic COLOR       = f(constant buffer's ambient light's color)                                                                 (Color of each vertex is set to the ambient light's color, a single color)
 
     // Calculate changes in color based on the level of light: Calculate the diffuse light color and add it to the ambient light's color.
-    float4 norm = normalize(mul(matRotate, normal));        // Rotate the vertex normal to match the rotation of the object. The normalize intrinsic scales the calculated value of a vector to make its length equal to 1.0. Variable norm is necessary because VShader parameter normal cannot be modified.
-    float diffusebrightness = saturate(dot(norm, lightvec));// Calculate the diffuse brightness as the dot product of the vertex normal and the light's vector. The saturate intrinsic clamps the calculated value between 0 and 1.
-    output.color += lightcol * diffusebrightness;           // output.color    with semantic COLOR       = f(constant buffer's ambient light's color, constant buffer's light's color, calculated diffuse brightness) (Color of each vertex is set to the result of this new calculation)
+    float4 norm = normalize(mul(matRotate, normal));        // Rotate the vertex normal vector to match the rotation of the object. The normalize intrinsic scales the calculated value of a vector to make its length equal to 1.0. Variable norm is necessary because VShader parameter normal cannot be modified.
+    float diffusebrightness = saturate(dot(norm, LightVector)); // Calculate the diffuse brightness as the dot product of the vertex normal vector and the light's vector. The saturate intrinsic clamps the calculated value between 0 and 1.
+    output.color += LightColor * diffusebrightness;         // output.color    with semantic COLOR       = f(constant buffer's ambient light's color, constant buffer's light's color, calculated diffuse brightness) (Color of each vertex is set to the result of this new calculation)
 
     return output;
 }
@@ -112,6 +114,8 @@ VOut VShader(float4 position : POSITION, float4 normal : NORMAL)
 //
 // The number of times a pixel shader function has been executed can be queried from the CPU using the PSInvocations pipeline statistic.
 //
+// It is possible for the pixel shader to have fewer parameters than the return values of the vertex shader, as the pixel shader only needs to know the interpolated data for each pixel and not the full set of data for the entire model.
+//
 // When passing multiple variables between shader functions, they must be passed in the same order, e.g., position first; color second.
 //
 // Semantics:
@@ -119,14 +123,9 @@ VOut VShader(float4 position : POSITION, float4 normal : NORMAL)
 // COLOR:       Pixel color.                                                                                    -> Vertex shader | Vertex shader -> Pixel shader
 // SV_TARGET:   Final color of the pixel of the render target.                                    Pixel shader  -> (Output-Merger Stage)
 //
-// The following syntax was provided by DirectXTutorial.com:
-// float4 PShader(float4 position : SV_POSITION, float4 color : COLOR) : SV_TARGET
-// {
-//     return color;                                           // color           is COLOR       = Pixel color (unchanged in this shader function)
-// }
-// The following alternative syntax is also valid: It was suggested by GitHub Copilot.
-// This syntax explicitly shows that the return value of the vertex shader function is being passed to the pixel shader function.
-float4 PShader(VOut input) : SV_TARGET
+//   (b) Lesson: Adding Light    used float4 PShader(float4 position : POSITION,    float4 color : COLOR) : SV_TARGET    < This works.
+//   (a) Lesson: Simple Modeling used float4 PShader(float4 position : SV_POSITION, float4 color : COLOR) : SV_TARGET    < This works.   This code was first specified in 'Lesson Constant Buffers Part 1'.
+float4 PShader(float4 position : POSITION, float4 color : COLOR) : SV_TARGET // (b)
 {
-    return input.color;                                     // input.color     is COLOR       = Pixel color (unchanged in this shader function)
+    return color;
 }

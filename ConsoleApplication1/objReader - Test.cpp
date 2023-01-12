@@ -1,6 +1,6 @@
 //***
 // This project's "objRenderer" files, including related files such as .hlsl and .obj files, are the latest versions and are intended to replace those in the project located at "repo\DirectX\objRenderer".
-// This project's objRenderer.cpp file cannot be tested under this project, because it is a Windows app and this is a console project.
+// This project's objRenderer.cpp file cannot be tested under this project, ConsoleApplication1, because objRenderer.cpp is a Windows app and ConsoleApplication1 is a console project: Use the desktop project DesktopApplication2 instead.
 //
 // The primary source code files located at "repo\DirectX\objRenderer" are temporarily READ-ONLY.
 //***

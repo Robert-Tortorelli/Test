@@ -2,9 +2,14 @@
 // Version 3.1
 //
 // Description
-// The project objRenderer parses a single 3D object's description from a Wavefront .obj file and renders that object one or more times.
+// The project objRenderer parses a single 3D object's description from a Wavefront .obj file, and renders that object one or more times.
+// Light sources: directional, ambient
+//
 // This program, objRenderer, renders the object.
 // This program is a C++ Windows Desktop application using the Windows (Win32) API and the DirectX 11 API.
+//
+// All variables and functions coded in HLSL (.hlsl files) are stored in GPU memory.
+// All variables and functions coded in C++ (.cpp files) are stored in CPU memory.
 //
 // Authorship
 // This program is based on "DirectX 11 Win32 Desktop: Direct3D: Moving to 3D: Lesson 3: Simple Modeling" and earlier lessons by Chris Hanson (https://DirectXTutorial.com).
@@ -14,14 +19,13 @@
 // Global Declarations.
 //***
 
-// All variables and functions coded in HLSL (.hlsl files) are stored in GPU memory.
-// All variables and functions coded in C++ (.cpp files) are stored in CPU memory.
+// Wavefront .obj file I/O (objReader function) Header File.
+// Declare external global variables in this header file, and include it in all source files that reference these external global variables.
+// Includes the DirectXMath Header File.
+#include "objReader.h"
 
 // Windows API Header File.
 #include <windows.h>										// The Windows API (Win32 API) header file enables you to create 32-bit and 64-bit applications. It includes declarations for both Unicode and ANSI versions of the API. For more information, see Unicode in the Windows API.
-
-// Wavefront .obj file I/O (objReader function) Header File.
-#include "objReader.h"										// Declare external global variables in this header file, and include it in all source files that reference these external global variables.
 
 // Global Function Declarations: Function prototypes for functions called in this program.
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd);
@@ -61,16 +65,15 @@ void CleanD3D(void);
 // Direct3D Header Files.
 #include <d3d11.h>											// This header is used by Direct3D 11 Graphics.
 #include <d3dcompiler.h>									// Needed by D3DCompileFromFile, which compiles shaders.
-
-// DirectXMath Header File.									// The DirectXMath API provides SIMD-friendly C++ types and functions for common linear algebra and graphics math operations common to DirectX programs.
-#include <DirectXMath.h>
+#include <directxpackedvector.h>							// Used with the namespace DirectX::PackedVector.
 
 // Using Declarations and Directives.
 // Using declarations such as using std::string;   bring one identifier	 in the named namespace into scope.
 // Using directives	  such as using namespace std; bring all identifiers in the named namespace into scope.
 // Using declarations are preferred to using directives.
 // Using declarations and directives must appear after their respective header file includes.
-using namespace DirectX;
+using namespace DirectX;									// Used with the DirectXMath Header File.
+using namespace DirectX::PackedVector;						// Used with the DirectXPackedVector Header File.
 
 // Defines.
 // Define the screen resolution of the client area.
@@ -94,6 +97,33 @@ ID3D11PixelShader *pPS;										// The pointer to the pixel shader interface.		
 ID3D11Buffer *pVBuffer;										// The pointer to a buffer interface.				A buffer interface accesses a buffer resource, which is unstructured memory. In this case the vertex buffer.																						The ID3D11Buffer interface inherits from the ID3D11Resource interface.
 ID3D11Buffer *pIBuffer;										// The pointer to a buffer interface.				A buffer interface accesses a buffer resource, which is unstructured memory. In this case the index buffer.																							The ID3D11Buffer interface inherits from the ID3D11Resource interface.
 ID3D11Buffer *pCBuffer;										// The pointer to a buffer interface.				A buffer interface accesses a buffer resource, which is unstructured memory. In this case the constant buffer.																						The ID3D11Buffer interface inherits from the ID3D11Resource interface.
+
+// Declare the C++ constant buffer structure used to assign values to the HLSL constant buffer structure.
+// This structure represents a constant buffer used in the graphics rendering pipeline.
+// It contains information that is passed to the vertex shader stage of the pipeline and can be used to transform vertices and calculate lighting effects on them.
+//
+// The matFinal member is a 4x4 matrix that represents the combined world, view, and projection transformations that are applied to the vertices of the geometry being rendered.
+//
+// The matRotate member is a 4x4 matrix that represents a rotation transformation that is applied to the vertices of the geometry.
+// It is a component of the matFinal matrix, but is also included separately because the normal vectors of the vertices also need to be transformed by the same rotation matrix in order to correctly calculate lighting effects.
+//
+// The LightVector member is a 4D vector that represents the direction of the light source in 3D space.
+// This vector can be represented by any nonzero vector and the light will shine in that direction.
+//
+// The LightColor member is a 4D vector that represents the color and brightness of the light source.
+// Any color closer to white is brighter than any color closer to black.
+//
+// The AmbientColor member is a 4D vector that represents the color and brightness of the ambient light in the scene.
+// Ambient light is a type of light that illuminates all objects in a scene equally, regardless of their distance from the light source.
+// It is used to add a basic level of illumination to a scene and can be used to simulate global illumination effects.
+struct
+{
+	XMMATRIX matFinal;
+	XMMATRIX matRotate;										// Vertex normal vectors, like the geometric vertices comprising the object, also need to be transformed by the rotation matrix to correctly calculate lighting effects.
+	XMFLOAT4 LightVector;									// Directional light's direction.
+	XMFLOAT4 LightColor;									// Directional light's color (whiter color == brighter color).
+	XMFLOAT4 AmbientColor;									// Ambient     light's color (whiter color == brighter color).
+} ConstantBuffer;
 
 // End: DirectX Global Declarations.
 
@@ -530,8 +560,8 @@ void InitPipeline(void)
 		NULL,												// An optional pointer to an ID3DInclude interface that the compiler uses to handle include files.
 		"VShader",											// A pointer to a constant null-terminated string that contains the name of the shader entry point function where shader execution begins.
 		"vs_4_1",											// A pointer to a constant null-terminated string that specifies the shader target or set of shader features to compile against. The shader target can be a shader model. vs_4_1 is the vertex shader model (a shader target) of the Direct3D 10.1 feature level.
-		0,													// A combination of shader compile options that are combined by using a bitwise OR operation. The resulting value specifies how the compiler compiles the HLSL code.
-		0,													// A combination of effect compile options that are combined by using a bitwise OR operation. The resulting value specifies how the compiler compiles the effect. When you compile a shader and not an effect file, D3DCompileFromFile ignores this parameter (set it to zero).
+		D3DCOMPILE_DEBUG,									// A combination of shader compile options that are combined by using a bitwise OR operation. The resulting value specifies how the compiler compiles the HLSL code (set it to zero (0) to indicate no options). The D3DCOMPILE_DEBUG option directs the compiler to insert debug file/line/type/symbol information into the output code.
+		0,													// A combination of effect compile options that are combined by using a bitwise OR operation. The resulting value specifies how the compiler compiles the effect. When you compile a shader and not an effect file, D3DCompileFromFile ignores this parameter (set it to zero (0) to indicate no options).
 		&VS,												// &VS is the address of a pointer, VS, to the interface that you can use to access the compiled code.
 		0);													// An optional pointer to a variable that receives a pointer to the ID3DBlob interface that you can use to access compiler error messages
 	//   Compile the pixel shader:
@@ -540,8 +570,8 @@ void InitPipeline(void)
 		NULL,												// An optional pointer to an ID3DInclude interface that the compiler uses to handle include files.
 		"PShader",											// A pointer to a constant null-terminated string that contains the name of the shader entry point function where shader execution begins.
 		"ps_4_1",											// A pointer to a constant null-terminated string that specifies the shader target or set of shader features to compile against. The shader target can be a shader model. ps_4_1 is the pixel shader model (a shader target) of the Direct3D 10.1 feature level.
-		0,													// A combination of shader compile options that are combined by using a bitwise OR operation. The resulting value specifies how the compiler compiles the HLSL code.
-		0,													// A combination of effect compile options that are combined by using a bitwise OR operation. The resulting value specifies how the compiler compiles the effect. When you compile a shader and not an effect file, D3DCompileFromFile ignores this parameter (set it to zero).
+		D3DCOMPILE_DEBUG,									// A combination of shader compile options that are combined by using a bitwise OR operation. The resulting value specifies how the compiler compiles the HLSL code (set it to zero (0) to indicate no options). The D3DCOMPILE_DEBUG option directs the compiler to insert debug file/line/type/symbol information into the output code.
+		0,													// A combination of effect compile options that are combined by using a bitwise OR operation. The resulting value specifies how the compiler compiles the effect. When you compile a shader and not an effect file, D3DCompileFromFile ignores this parameter (set it to zero (0) to indicate no options).
 		&PS,												// &PS is the address of a pointer, PS, to the interface that you can use to access the compiled code.
 		0);													// An optional pointer to a variable that receives a pointer to the ID3DBlob interface that you can use to access compiler error messages.
 
@@ -617,14 +647,15 @@ void InitPipeline(void)
 
 	//***
 	// 3. Create the constant buffer object and set it to the vertex shader stage of the graphics pipeline.
+	//		Multiple constant buffers can be created (see below) and each can be set to the vertex shader and/or pixel shader stage of the graphics pipeline, depending on how it will be used.
 	//      Constant buffers are optimized for constant variable usage, which is characterized by lower-latency access and more frequent update from the CPU.
 	//      Constant buffers are used to store data that is shared by all shaders in the graphics pipeline.
-	//      The constant buffer resource must be a multiple of 16 bytes, because constants are sent to the GPU in packs of 16 bytes, regardless of the size of the C++ structure that matches it (in this program this C++ structure is matFinal, which as it happens is 4 x 16 = 64 bytes).
+	//      The constant buffer resource must be a multiple of 16 bytes, because constants are sent to the GPU in packs of 16 bytes, regardless of the size of the C++ constant buffer structure.
 	//      A constant buffer can be a structure containing multiple constants. The order and size of these structure's members must match in both C++ and HLSL.
 	//      Any one constant (structure member) cannot be split between two 16-byte areas of memory. Therefore, if the first constant in the structure is less than 16 bytes then the second constant will be aligned on the next 16-byte boundary. When it occurs, this automatic alignment must be accounted for in the C++ constant buffer structure in C++, otherwise it will not match the HLSL constant buffer structure, even if their code looks identical.
 	//
-	//      In this program, the final transform matrix, matFinal, and the final rotation matrix, matRotate, are two of the members of the C++ structure matching and assigning values to the constant buffer, which is a HLSL structure. These structures and their members are optionally named the same in C++ and HLSL.
-	//      matFinal is copied to the constant buffer pointed to by pCBuffer using the ID3D11DeviceContext::UpdateSubresource member function.
+	//      These structures and their members are optionally named the same in C++ and HLSL.
+	//      The C++ constant buffer structure is copied to the constant buffer pointed to by pCBuffer using the ID3D11DeviceContext::UpdateSubresource member function.
 	//      Copying to the constant buffer always provides		  position information for the object rendered, as it does in this program.
 	//      Copying to the constant buffer may optionally provide scene    information for the object rendered, such as lighting information, timing information, among other details.
 	//      A constant buffer's information should be sent to the GPU only as needed, matching its frequency of update. For example, if position information and scene information are updated at different frequencies (at different times), then create two constant buffers, one for position information and one for scene information.
@@ -654,7 +685,7 @@ void InitPipeline(void)
 	ZeroMemory(&bd, sizeof(D3D11_BUFFER_DESC));				// ZeroMemory macro: Fills a block of memory with zeros.
 
 	// Assign values to the buffer resource description D3D11_BUFFER_DESC structure's members. Any subordinate members (variable.member.subordinatemember) are described in the comments.
-	bd.ByteWidth = 64;										// Assigned a value specifying the size of the buffer in bytes. The constant buffer resource must be a multiple of 16 bytes, because constants are sent to the GPU in packs of 16 bytes, regardless of the size of the C++ structure that matches it.
+	bd.ByteWidth = sizeof(ConstantBuffer);					// Assigned a value specifying the size of the buffer in bytes. See the preceding comments for related information, including limitations.
 	bd.Usage = D3D11_USAGE_DEFAULT;							// Assigned a value that identifies how the buffer is expected to be read from and written to. Frequency of update is a key factor. A value of the D3D11_USAGE enumerated type,		i.e., D3D11_USAGE_DEFAULT:		  A resource that requires read and write access by the GPU. This is likely to be the most common usage choice.
 	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;				// Assigned values in any combination by a bitwise OR operation specifying the flags for binding to graphics pipeline stages.		A value of the D3D11_BIND_FLAG enumerated type,	i.e., D3D11_BIND_CONSTANT_BUFFER: Bind a buffer as a constant buffer to a shader stage of the graphics pipeline; this flag may NOT be combined with any other bind flag.
 
@@ -785,7 +816,7 @@ void InitGraphics(void)
 //
 //     4. Specify the vertex buffers, the index buffer, and the primitive type used when drawing.
 //
-//     5. Render the object.
+//     5. Render the objects.
 void RenderFrame(void)
 {
 	//***
@@ -794,7 +825,7 @@ void RenderFrame(void)
 	//
 	//   i.	Define the world matrix, matWorld.
 	//		What is the purpose of the world transform?
-	//		The world transform converts model vertices to world coordinates.
+	//		A model-to-world transformation, colloquially called a world transformation (or model transformation), converts model vertices to world coordinates.
 	//		In other words, it places a model in a world at an exact point defined by coordinates, and involves:
 	//		1. Translation (movement)
 	//		   It's defined by a single matrix (matTranslate), using a single DirectX function (XMMatrixTranslation).
@@ -834,21 +865,11 @@ void RenderFrame(void)
 	//  iv.	Define the final transform matrix, matFinal.
 	//		matFinal = matWorld x matView x matProjection
 	//		Each vertex is multiplied by the final transform matrix.
-	//		The final transform matrix is one member of the constant buffer C++ structure that matches the constant buffer HLSL structure. The constant buffer C++ structure will be copied to the constant buffer HLSL structure (they are, but do not have to be, named the same).
-	//		Using the HLSL constant buffer is efficient, as multiplication is performed by the GPU's vertex shader.
+	//		The final transform matrix is one member of the C++ constant buffer structure that matches the HLSL constant buffer structure. The C++ constant buffer structure will be copied to the HLSL constant buffer structure (they are, but do not have to be, named the same).
+	//		Using the HLSL constant buffer is efficient, as multiplication and other common operations can be performed on its members by the GPU's vertex shader.
 	//***
 
-	// Declare the C++ constant buffer structure used to assign values to the HLSL constant buffer structure.
-	struct
-	{
-		XMMATRIX matFinal;									// The final transform matrix.
-		XMMATRIX matRotate;									// The final rotation matrix. It is a component of the final transform matrix, and is also explicitly included here in the constant buffer structure because each normal has to be multiplied by the rotation matrix.
-		XMFLOAT4 LightVector;								// The direction of the light. This direction can be represented by any vector and the light will shine in that direction.
-		XMFLOAT4 LightColor;								// The color and brightness of the light. Any color closer to white is brighter than any color closer to black.
-		XMFLOAT4 AmbientColor;								// The color and brightness of the ambient light.
-	} ConstantBuffer;
-
-	// Declare transformation matrices that are not members of the constant buffer structure.
+	// Declare transformation matrices that are not members of the C++ constant buffer structure.
 	XMMATRIX matRotateY, matWorld, matView, matProjection;
 
 	// Define the world matrix, matWorld.
@@ -857,8 +878,8 @@ void RenderFrame(void)
 	//   Builds a matrix that rotates around the y-axis.
 	static float Angle = 0.0f; Angle += 0.001f;				// The variable Angle must be declared static so that its value is preserved though multiple calls of the function that contains it. This supports incremental frame by frame changes to the rendered object.
 	matRotateY = XMMatrixRotationY(Angle);					// Angle of rotation around the y-axis, in radians. Angles are measured clockwise when looking along the rotation axis toward the origin.
-	ConstantBuffer.matRotate = matRotateY;					// The final rotation matrix is the product of all defined rotation matrices.		   In this program, only matRotateY is defined.
-	matWorld = ConstantBuffer.matRotate;					// The world transform is a function of translation (movement), rotation, and scaling. In this program, only rotation is used.
+	ConstantBuffer.matRotate = matRotateY;					// The final rotation matrix is the product of all defined rotation matrices.		   Here, only matRotateY is defined.
+	matWorld = ConstantBuffer.matRotate;					// The world transform is a function of translation (movement), rotation, and scaling. Here, only rotation is used.
 
 	// Define the view matrix, matView.
 	// XMMatrixLookAtLH function:
@@ -968,26 +989,30 @@ void RenderFrame(void)
 	// End: 4. Specify the vertex buffers, the index buffer, and the primitive type used when drawing..
 
 	//***
-	// 5. Render the object.
-	//   i.	Copy the final transform matrix to the constant buffer defined in the GPU's vertex shader.
+	// 5. Render the objects.
+	//   i.	Copy the C++ constant buffer structure to the HLSL constant buffer structure used by the GPU's vertex shader.
 	//  ii. Draw the object's primitives to the back buffer.
 	// iii. Switch the back buffer and the front buffer to present the rendered image to the user.
 	//
 	//    Each UpdateSubresource() and DrawIndexed() pair draws one instance of the object.
-	//    A second instance of the same object is also drawn to the scene.
+	//    A second instance of the same object is also drawn to the scene, offset from the first object.
 	//***
 
+	// Draw the first instance of the object to the scene.
+	//
+	// Prepare to draw the first instance of the object using the updated constant buffer.
 	// ID3D11DeviceContext::UpdateSubresource member function:
 	//   The CPU copies data from memory		   to a subresource created in non-mappable memory.
 	//   Specifically:
-	//   The CPU copies the final transform matrix to the constant buffer used by the GPU's vertex shader.
+	//   The CPU copies the C++ constant buffer	   to the HLSL constant buffer used by the GPU's vertex shader.
 	devcon->UpdateSubresource(pCBuffer,						// A pointer to the destination resource, in this case the constant buffer interface.
 		0,													// A zero-based index that identifies the destination subresource.
 		0,													// A pointer to a box that defines the portion of the destination subresource to copy the resource data into. For a constant buffer, set this parameter to NULL, as it is not possible to use this member function to partially update a constant buffer.
-		&ConstantBuffer.matFinal,											// &matFinal is the address of matFinal, and therefore a pointer to the source data in memory, in this case the final transform matrix.
+		&ConstantBuffer,									// &ConstantBuffer is the address of ConstantBuffer, and therefore a pointer to the source data in memory, in this case the C++ constant buffer structure.
 		0,													// The size of one row of the source data.
 		0);													// The size of one depth slice of source data.
-
+	//
+	// Draw the first instance of the object using the updated constant buffer.
 	// ID3D11DeviceContext::DrawIndexed member function:
 	//   Draw indexed, non-instanced primitives.
 	devcon->DrawIndexed(PrimitivesTotal * 3,				// Number of indices to draw. Three vertex indices (each pointing to a vertex in the vertex buffer) describe each triangle primitive, and PrimitivesTotal is the total number of triangles comprising the object. Therefore PrimitivesTotal * 3.
@@ -995,9 +1020,10 @@ void RenderFrame(void)
 		0);													// A value added to each index before reading a vertex from the vertex buffer.
 	
 	// Draw a second instance of the same object to the scene, using different world coordinates that offset it from the first instance of the object.
-	// This code that draws a second instance of the same object is written in a somewhat self-contained "one-off" style, compared to other code in this program, and for this reason can be improved.
-	// For example, the variable matTranslateY is declared and defined here, rather than at the start of this function like most other variables.
-	// 
+	//
+	// *** This code that draws a second instance of the same object is written in a somewhat self-contained "one-off" style, compared to other code in this program, and for this reason can be improved.
+	// *** For example, the variable matTranslateY is declared and defined here, rather than at the start of this function like most other variables.
+	//
 	// Update the final transform matrix, matFinal, using different world coordinates that offset the second instance of the object from the first instance of the object.
 	// XMMatrixTranslation function:
 	//   Builds a translation matrix from the specified offsets.
@@ -1005,17 +1031,17 @@ void RenderFrame(void)
 	XMMATRIX matTranslateY = XMMatrixTranslation(0.0f, 3.0f, 0.0f);
 	// Rotate the second instance of the object counterclockwise.
 	static float Angle2 = 0.0f; Angle2 -= 0.001f;			// The variable Angle2 must be declared static so that its value is preserved though multiple calls of the function that contains it. This supports incremental frame by frame changes to the rendered object.
-	ConstantBuffer.matRotate = XMMatrixRotationY(Angle2);
-	// Update the world matrix, matWorld, by multiplying the new translation matrix by the updated rotation matrix.
-	matWorld = matTranslateY * ConstantBuffer.matRotate;
+	matRotateY = XMMatrixRotationY(Angle2);					// Angle of rotation around the y-axis, in radians. Angles are measured clockwise when looking along the rotation axis toward the origin.
+	ConstantBuffer.matRotate = matRotateY;					// The final rotation matrix is the product of all defined rotation matrices.		   Here, only matRotateY is defined.
+	matWorld = matTranslateY * ConstantBuffer.matRotate;	// The world transform is a function of translation (movement), rotation, and scaling. Here, only translation and rotation are used.
 	// Update the final transform matrix, matFinal, by multiplying the new world matrix by the original view and projection matrices.
 	ConstantBuffer.matFinal = matWorld * matView * matProjection;
 	//
-	// Update the constant buffer with the updated final transform matrix.
+	// Prepare to draw the second instance of the object using the updated constant buffer.
 	devcon->UpdateSubresource(pCBuffer,						// A pointer to the destination resource, in this case the constant buffer interface.
 		0,													// A zero-based index that identifies the destination subresource.
 		0,													// A pointer to a box that defines the portion of the destination subresource to copy the resource data into. For a constant buffer, set this parameter to NULL, as it is not possible to use this member function to partially update a constant buffer.
-		&ConstantBuffer.matFinal,											// &matFinal is the address of matFinal, and therefore a pointer to the source data in memory, in this case the final transform matrix.
+		&ConstantBuffer,									// &ConstantBuffer is the address of ConstantBuffer, and therefore a pointer to the source data in memory, in this case the C++ constant buffer structure.
 		0,													// The size of one row of the source data.
 		0);													// The size of one depth slice of source data.
 	//
@@ -1037,7 +1063,7 @@ void RenderFrame(void)
 //   This function performs an orderly termination of Direct3D.
 //   1. Switch to windowed mode.
 //
-//   2. Close Direct3D and release its memory.
+//   2. Free memory.
 void CleanD3D(void)
 {
 	//***
@@ -1055,9 +1081,12 @@ void CleanD3D(void)
 	// End 1. Switch to windowed mode.
 
 	//***
-	// 2. Close Direct3D and release its memory.
+	// 2. Free memory.
+	//    Close Direct3D and release its memory.
+	//    Deallocate any dynamically allocated objects, i.e., objects created with the new operator.
 	//***
 
+	// Close Direct3D and release its memory.
 	// IUnknown::Release member function:
 	//   Decrement the reference count for an interface on a COM object. If the reference count = 0, then the interface pointer is freed. If there are no other interface pointers, then the COM object is freed.
 	pLayout->Release();
@@ -1072,5 +1101,10 @@ void CleanD3D(void)
 	dev->Release();
 	devcon->Release();
 
-	// End 2. Close Direct3D and release its memory.
+	// Deallocate any dynamically allocated objects.
+	// delete Operator: Deallocates the memory block pointed to by a pointer (if not null), releasing the storage space previously allocated to it by a call to operator new (e.g., OurVertices = new VERTEX[GeometricVerticesTotal];), and rendering the pointer location invalid.
+	delete[] OurVertices;									// Deallocate pointer OurVertices.
+	delete[] OurIndices;									// Deallocate pointer OurIndices.
+
+	// End 2. Free memory.
 }
