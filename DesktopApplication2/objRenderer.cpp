@@ -3,7 +3,9 @@
 //
 // Description
 // The project objRenderer parses a single 3D object's description from a Wavefront .obj file, and renders that object one or more times.
-// Light sources: directional, ambient
+// Implemented:
+// - Object geometry
+// - Light
 //
 // This program, objRenderer, renders the object.
 // This program is a C++ Windows Desktop application using the Windows (Win32) API and the DirectX 11 API.
@@ -60,20 +62,19 @@ void CleanD3D(void);
 // The #pragma directives offer machine-specific and operating system-specific features while retaining overall compatibility with the C and C++ languages.
 // Direct3D Library files.
 #pragma comment (lib, "d3d11.lib")							// Direct3D DirectX 11 Library.
-#pragma comment(lib,"d3dcompiler.lib")						// Direct3D Compiler Library. Needed for D3DCompileFromFile, which compiles shaders.
+#pragma comment(lib, "d3dcompiler.lib")						// Direct3D Compiler Library. Needed for D3DCompileFromFile, which compiles shaders.
 
 // Direct3D Header Files.
 #include <d3d11.h>											// This header is used by Direct3D 11 Graphics.
 #include <d3dcompiler.h>									// Needed by D3DCompileFromFile, which compiles shaders.
-#include <directxpackedvector.h>							// Used with the namespace DirectX::PackedVector.
+#include <wictextureloader.h>								// DirectXTK library module WICTextureLoader is a Direct3D 2D texture loader using Windows Imaging Component to load, resize, and format convert a supported bitmap and then create a 2D texture from it.
 
 // Using Declarations and Directives.
 // Using declarations such as using std::string;   bring one identifier	 in the named namespace into scope.
 // Using directives	  such as using namespace std; bring all identifiers in the named namespace into scope.
 // Using declarations are preferred to using directives.
 // Using declarations and directives must appear after their respective header file includes.
-using namespace DirectX;									// Used with the DirectXMath Header File.
-using namespace DirectX::PackedVector;						// Used with the DirectXPackedVector Header File.
+using namespace DirectX;
 
 // Defines.
 // Define the screen resolution of the client area.
@@ -558,7 +559,7 @@ void InitPipeline(void)
 	D3DCompileFromFile(L"shaders.hlsl",						// A pointer to a constant null-terminated string that contains the name of the file that contains the shader code.
 		NULL,												// An optional array of D3D_SHADER_MACRO structures that define shader macros.
 		NULL,												// An optional pointer to an ID3DInclude interface that the compiler uses to handle include files.
-		"VShader",											// A pointer to a constant null-terminated string that contains the name of the shader entry point function where shader execution begins.
+		"VShader",											// A pointer to a constant null-terminated string that contains the name of the shader entry point function where shader execution begins. When you compile an effect this parameter is ignored; Microsoft recommends setting it to NULL because it is good programming practice to set a pointer parameter to NULL if the called function will not use it.
 		"vs_4_1",											// A pointer to a constant null-terminated string that specifies the shader target or set of shader features to compile against. The shader target can be a shader model. vs_4_1 is the vertex shader model (a shader target) of the Direct3D 10.1 feature level.
 		D3DCOMPILE_DEBUG,									// A combination of shader compile options that are combined by using a bitwise OR operation. The resulting value specifies how the compiler compiles the HLSL code (set it to zero (0) to indicate no options). The D3DCOMPILE_DEBUG option directs the compiler to insert debug file/line/type/symbol information into the output code.
 		0,													// A combination of effect compile options that are combined by using a bitwise OR operation. The resulting value specifies how the compiler compiles the effect. When you compile a shader and not an effect file, D3DCompileFromFile ignores this parameter (set it to zero (0) to indicate no options).
@@ -568,7 +569,7 @@ void InitPipeline(void)
 	D3DCompileFromFile(L"shaders.hlsl",						// A pointer to a constant null-terminated string that contains the name of the file that contains the shader code.
 		NULL,												// An optional array of D3D_SHADER_MACRO structures that define shader macros.
 		NULL,												// An optional pointer to an ID3DInclude interface that the compiler uses to handle include files.
-		"PShader",											// A pointer to a constant null-terminated string that contains the name of the shader entry point function where shader execution begins.
+		"PShader",											// A pointer to a constant null-terminated string that contains the name of the shader entry point function where shader execution begins. When you compile an effect this parameter is ignored; Microsoft recommends setting it to NULL because it is good programming practice to set a pointer parameter to NULL if the called function will not use it.
 		"ps_4_1",											// A pointer to a constant null-terminated string that specifies the shader target or set of shader features to compile against. The shader target can be a shader model. ps_4_1 is the pixel shader model (a shader target) of the Direct3D 10.1 feature level.
 		D3DCOMPILE_DEBUG,									// A combination of shader compile options that are combined by using a bitwise OR operation. The resulting value specifies how the compiler compiles the HLSL code (set it to zero (0) to indicate no options). The D3DCOMPILE_DEBUG option directs the compiler to insert debug file/line/type/symbol information into the output code.
 		0,													// A combination of effect compile options that are combined by using a bitwise OR operation. The resulting value specifies how the compiler compiles the effect. When you compile a shader and not an effect file, D3DCompileFromFile ignores this parameter (set it to zero (0) to indicate no options).
@@ -609,14 +610,14 @@ void InitPipeline(void)
 	//***
 
 	// Create the input element description structure used to define the input-layout object that describes the VERTEX structure used in this program.
-	D3D11_INPUT_ELEMENT_DESC ied[2];						// Defines the input-layout object containing an array of structures, each structure defines one element being read from an input slot.
+	D3D11_INPUT_ELEMENT_DESC ied[3];						// Defines the input-layout object containing an array of structures, each structure defines one element being read from an input slot.
 	ZeroMemory(&ied, sizeof(ied));							// ZeroMemory macro: Fills a block of memory with zeros. "sizeof(ied)" is used instead of "sizeof(D3D11_INPUT_ELEMENT_DESC)" because the former fills both elements of array "ied".
 
 	// Assign values to the input element description D3D11_INPUT_ELEMENT_DESC structure's members. Any subordinate members (variable.member.subordinatemember) are described in the comments.
 	// Define the position input element of the VERTEX structure OurVertices.
 	ied[0].SemanticName = "POSITION";						// Assigned a value specifying the HLSL semantic name associated with this element in a shader input signature.
 	ied[0].SemanticIndex = 0;								// Assigned a value specifying the semantic index for the element. A semantic index modifies a semantic with an integer index number. A semantic index is only needed in a case where there is more than one element with the same semantic name.
-	ied[0].Format = DXGI_FORMAT_R32G32B32_FLOAT;			// Assigned a value specifying the data type of the element.					  A value of the DXGI_FORMAT enumerated type,				 i.e., DXGI_FORMAT_R32G32B32_FLOAT:	   A three-component, 96-bit floating-point format that supports 32 bits per color channel.
+	ied[0].Format = DXGI_FORMAT_R32G32B32_FLOAT;			// Assigned a value specifying the data type of the element.					  A value of the DXGI_FORMAT enumerated type,				 i.e., DXGI_FORMAT_R32G32B32_FLOAT:	   A three-component, 96-bit floating-point format that supports 32 bits for the red channel, 32 bits for the green channel and 32 bits for the blue channel.
 	ied[0].InputSlot = 0;									// Assigned a value specifying the integer value that identifies the input-assembler (see input slot).
 	ied[0].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;// Assigned a value specifying the optional offset (in bytes) from the start of the vertex. Use D3D11_APPEND_ALIGNED_ELEMENT for convenience to define the current element directly after the previous one, including any packing if necessary. Position has an offset of 0 in this program.
 	ied[0].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;	// Assigned a value specifying the input data slot class for a single input slot. A value of the D3D11_INPUT_CLASSIFICATION enumerated type, i.e., D3D11_INPUT_PER_VERTEX_DATA:	   Input data is per-vertex data.
@@ -625,16 +626,25 @@ void InitPipeline(void)
 	// Define the normal   input element of the VERTEX structure OurVertices.
 	ied[1].SemanticName = "NORMAL";							// Assigned a value specifying the HLSL semantic name associated with this element in a shader input signature.
 	ied[1].SemanticIndex = 0;								// Assigned a value specifying the semantic index for the element. A semantic index modifies a semantic with an integer index number. A semantic index is only needed in a case where there is more than one element with the same semantic name.
-	ied[1].Format = DXGI_FORMAT_R32G32B32_FLOAT;			// Assigned a value specifying the data type of the element.					  A value of the DXGI_FORMAT enumerated type,				 i.e., DXGI_FORMAT_R32G32B32_FLOAT:	   A three-component, 96-bit floating-point format that supports 32 bits per color channel.
+	ied[1].Format = DXGI_FORMAT_R32G32B32_FLOAT;			// Assigned a value specifying the data type of the element.					  A value of the DXGI_FORMAT enumerated type,				 i.e., DXGI_FORMAT_R32G32B32_FLOAT:	   A three-component, 96-bit floating-point format that supports 32 bits for the red channel, 32 bits for the green channel and 32 bits for the blue channel.
 	ied[1].InputSlot = 0;									// Assigned a value specifying the integer value that identifies the input-assembler (see input slot).
 	ied[1].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;// Assigned a value specifying the optional offset (in bytes) from the start of the vertex. Use D3D11_APPEND_ALIGNED_ELEMENT for convenience to define the current element directly after the previous one, including any packing if necessary. Normal has an offset of 12 in this program.
 	ied[1].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;	// Assigned a value specifying the input data slot class for a single input slot. A value of the D3D11_INPUT_CLASSIFICATION enumerated type, i.e., D3D11_INPUT_PER_VERTEX_DATA:	   Input data is per-vertex data.
 	ied[1].InstanceDataStepRate = 0;						// Assigned a value specifying the number of instances to draw using the same per-instance data before advancing in the buffer by one element. This value must be 0 for an element that contains per-vertex data (the slot class is set to D3D11_INPUT_PER_VERTEX_DATA).
 
+	// Define the texture  input element of the VERTEX structure OurVertices.
+	ied[2].SemanticName = "TEXCOORD";						// Assigned a value specifying the HLSL semantic name associated with this element in a shader input signature.
+	ied[2].SemanticIndex = 0;								// Assigned a value specifying the semantic index for the element. A semantic index modifies a semantic with an integer index number. A semantic index is only needed in a case where there is more than one element with the same semantic name.
+	ied[2].Format = DXGI_FORMAT_R32G32_FLOAT;				// Assigned a value specifying the data type of the element.					  A value of the DXGI_FORMAT enumerated type,				 i.e., DXGI_FORMAT_R32G32_FLOAT:	   A two-component, 64-bit floating-point format that supports 32 bits for the red channel and 32 bits for the green channel.
+	ied[2].InputSlot = 0;									// Assigned a value specifying the integer value that identifies the input-assembler (see input slot).
+	ied[2].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;// Assigned a value specifying the optional offset (in bytes) from the start of the vertex. Use D3D11_APPEND_ALIGNED_ELEMENT for convenience to define the current element directly after the previous one, including any packing if necessary. Normal has an offset of 12 in this program.
+	ied[2].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;	// Assigned a value specifying the input data slot class for a single input slot. A value of the D3D11_INPUT_CLASSIFICATION enumerated type, i.e., D3D11_INPUT_PER_VERTEX_DATA:	   Input data is per-vertex data.
+	ied[2].InstanceDataStepRate = 0;						// Assigned a value specifying the number of instances to draw using the same per-instance data before advancing in the buffer by one element. This value must be 0 for an element that contains per-vertex data (the slot class is set to D3D11_INPUT_PER_VERTEX_DATA).
+
 	// ID3D11Device::CreateInputLayout member function:
 	//   Create the input-layout object to describe the input-buffer data for the input-assembler stage of the graphics pipeline.
 	dev->CreateInputLayout(ied,								// An array of the input-assembler stage input data types, in this case POSITION and NORMAL, used to define the input-layout object. Each input data type is described by an element description.
-		2,													// The number of input data types in the array, in this case 2 (POSITION and NORMAL), used to define the input-layout object.
+		3,													// The number of input data types in the array, in this case 2 (POSITION and NORMAL), used to define the input-layout object.
 		VS->GetBufferPointer(),								// Pointer to the compiled shader.
 		VS->GetBufferSize(),								// Size of the compiled shader.
 		&pLayout);											// &pLayout is the address of a pointer, pLayout, to an input-layout ID3D11InputLayout interface.
@@ -713,6 +723,8 @@ void InitPipeline(void)
 //     3. Create the vertex buffer and assign values to it from the variable OurVertices.
 //
 //     4. Create the index buffer and assign values to it from the variable OurIndices.
+//
+//     5. Create the texture from a file.
 void InitGraphics(void)
 {
 	//***
@@ -804,6 +816,24 @@ void InitGraphics(void)
 		NULL);												// A subresource to be unmapped.
 
 	// End 4. Create the index buffer and assign values to it from the variable OurIndices.
+
+	//***
+	// 5. Create the texture from a file.
+	//***
+
+	// Comment all statements and parameters in this section ("5."), (and in the new "texture" code in HLSL, including the TEXCOORD semantic):
+	ID3D11Resource *pTexture;								// Move this statement to the start of this program.
+	ID3D11ShaderResourceView *pTextureView;					// Move this statement to the start of this program.
+
+	CreateWICTextureFromFile(dev,
+		devcon,
+		L"Wood.png",
+		&pTexture,
+		&pTextureView);
+
+	devcon->PSSetShaderResources(0, 1, &pTextureView);
+
+	// End 5. Create the texture from a file.
 }
 
 // RenderFrame function: Definition

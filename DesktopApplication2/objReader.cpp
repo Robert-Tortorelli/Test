@@ -65,74 +65,79 @@ int PrimitivesTotal = 12;                                   // Hard-coded, rathe
 int objReader(void)
 {
 
-    // Allocate and initialize the dynamic arrays of structures, i.e., the external/global variables OurVertices and OurIndices.
-    //
-    // Allocate memory for OurVertices and OurIndices and initialize them. Empty brackets ("{}") initialize them to 0.0f values.
+	// Allocate and initialize the dynamic arrays of structures, i.e., the external/global variables OurVertices and OurIndices.
+	//
+	// Allocate memory for OurVertices and OurIndices and initialize them. Empty brackets ("{}") initialize them to 0.0f values.
 
-    // OurVertices
-    // In a cube object:
-    // OurVertices has 24 elements.
-    // Each vertex normal vector appears 4 times, each time on the same      side, and therefore with 4 different vertices:              The 4 vertices comprising a cube's 4 cornered side share 1 vertex normal vector.  There are 6 unique vertex normal vectors, one for each side of the cube.
-    // Each vertex               appears 3 times, each time on a   different side, and therefore with 3 different vertex normal vectors: The 1 vertex   comprising a cube's 3 sided corner  has   3 vertex normal vectors. There are 8 unique vertices,              one for each corner of the cube.
+	// OurVertices
+	// In the cube object specified below:
+	// OurVertices has 24 elements, composed of 4 different vertices per each of 6 sides.
+	// e.g.,
+	//   {-1.0f, -1.0f, 1.0f, XMFLOAT3(0.0f, 0.0f, 1.0f), 0.0f, 0.0f},   // side 1
+	//   {v1,    v2,    v3,            vn1,  vn2,  vn3,   vt1,  vt2 },   // side 1 key. "vx" are vertices; "vnx" are vertex normal vectors; "vtx" are texture coordinates.
+	// There are 6 unique vertex normal vectors, one for each side of the cube. Each vertex normal vector is repeated 4 times per side, and therefore with 4 different vertices per each of 6 sides.
+	//   Each of the 6 sides is composed of 2 unique triangles, for a total of 12 unique triangles represented by 12 face elements in the Wavefront .obj file.
+	//   There are a total of 12 edges in a cube (each line connecting two vertices is one edge).
+	// There are 8 unique vertices, one for each corner of the cube. Each vertex is repeated 3 times per cube, for each of the cube's 3 sided corners, in order to specify the 3 associated vertex normal vectors at each corner.
+	// There are 4 unique texture coordinates, one for each corner of a side (all 6 sides repeat the same texture coordinates).
+	OurVertices = new VERTEX[GeometricVerticesTotal] {
+		{-1.0f, -1.0f, 1.0f, XMFLOAT3(0.0f, 0.0f, 1.0f), 0.0f, 0.0f},   // side 1
+		{1.0f, -1.0f, 1.0f, XMFLOAT3(0.0f, 0.0f, 1.0f), 0.0f, 1.0f},
+		{-1.0f, 1.0f, 1.0f, XMFLOAT3(0.0f, 0.0f, 1.0f), 1.0f, 0.0f},
+		{1.0f, 1.0f, 1.0f, XMFLOAT3(0.0f, 0.0f, 1.0f), 1.0f, 1.0f},
 
-    OurVertices = new VERTEX[GeometricVerticesTotal] {
-        {-1.0f, -1.0f, 1.0f, XMFLOAT3(0.0f, 0.0f, 1.0f)/*, 0.0f, 0.0f, 0.0f*/},   // side 1
-        {1.0f, -1.0f, 1.0f, XMFLOAT3(0.0f, 0.0f, 1.0f)/*, 0.0f, 0.0f, 0.0f*/},
-        {-1.0f, 1.0f, 1.0f, XMFLOAT3(0.0f, 0.0f, 1.0f)/*, 0.0f, 0.0f, 0.0f*/},
-        {1.0f, 1.0f, 1.0f, XMFLOAT3(0.0f, 0.0f, 1.0f)/*, 0.0f, 0.0f, 0.0f*/},
+		{-1.0f, -1.0f, -1.0f, XMFLOAT3(0.0f, 0.0f, -1.0f), 0.0f, 0.0f}, // side 2
+		{-1.0f, 1.0f, -1.0f, XMFLOAT3(0.0f, 0.0f, -1.0f), 0.0f, 1.0f},
+		{1.0f, -1.0f, -1.0f, XMFLOAT3(0.0f, 0.0f, -1.0f), 1.0f, 0.0f},
+		{1.0f, 1.0f, -1.0f, XMFLOAT3(0.0f, 0.0f, -1.0f), 1.0f, 1.0f},
 
-        {-1.0f, -1.0f, -1.0f, XMFLOAT3(0.0f, 0.0f, -1.0f)/*, 0.0f, 0.0f, 0.0f*/}, // side 2
-        {-1.0f, 1.0f, -1.0f, XMFLOAT3(0.0f, 0.0f, -1.0f)/*, 0.0f, 0.0f, 0.0f*/},
-        {1.0f, -1.0f, -1.0f, XMFLOAT3(0.0f, 0.0f, -1.0f)/*, 0.0f, 0.0f, 0.0f*/},
-        {1.0f, 1.0f, -1.0f, XMFLOAT3(0.0f, 0.0f, -1.0f)/*, 0.0f, 0.0f, 0.0f*/},
+		{-1.0f, 1.0f, -1.0f, XMFLOAT3(0.0f, 1.0f, 0.0f), 0.0f, 0.0f},   // side 3
+		{-1.0f, 1.0f, 1.0f, XMFLOAT3(0.0f, 1.0f, 0.0f), 0.0f, 1.0f},
+		{1.0f, 1.0f, -1.0f, XMFLOAT3(0.0f, 1.0f, 0.0f), 1.0f, 0.0f},
+		{1.0f, 1.0f, 1.0f, XMFLOAT3(0.0f, 1.0f, 0.0f), 1.0f, 1.0f},
 
-        {-1.0f, 1.0f, -1.0f, XMFLOAT3(0.0f, 1.0f, 0.0f)/*, 0.0f, 0.0f, 0.0f*/},   // side 3
-        {-1.0f, 1.0f, 1.0f, XMFLOAT3(0.0f, 1.0f, 0.0f)/*, 0.0f, 0.0f, 0.0f*/},
-        {1.0f, 1.0f, -1.0f, XMFLOAT3(0.0f, 1.0f, 0.0f)/*, 0.0f, 0.0f, 0.0f*/},
-        {1.0f, 1.0f, 1.0f, XMFLOAT3(0.0f, 1.0f, 0.0f)/*, 0.0f, 0.0f, 0.0f*/},
+		{-1.0f, -1.0f, -1.0f, XMFLOAT3(0.0f, -1.0f, 0.0f), 0.0f, 0.0f}, // side 4
+		{1.0f, -1.0f, -1.0f, XMFLOAT3(0.0f, -1.0f, 0.0f), 0.0f, 1.0f},
+		{-1.0f, -1.0f, 1.0f, XMFLOAT3(0.0f, -1.0f, 0.0f), 1.0f, 0.0f},
+		{1.0f, -1.0f, 1.0f, XMFLOAT3(0.0f, -1.0f, 0.0f), 1.0f, 1.0f},
 
-        {-1.0f, -1.0f, -1.0f, XMFLOAT3(0.0f, -1.0f, 0.0f)/*, 0.0f, 0.0f, 0.0f*/}, // side 4
-        {1.0f, -1.0f, -1.0f, XMFLOAT3(0.0f, -1.0f, 0.0f)/*, 0.0f, 0.0f, 0.0f*/},
-        {-1.0f, -1.0f, 1.0f, XMFLOAT3(0.0f, -1.0f, 0.0f)/*, 0.0f, 0.0f, 0.0f*/},
-        {1.0f, -1.0f, 1.0f, XMFLOAT3(0.0f, -1.0f, 0.0f)/*, 0.0f, 0.0f, 0.0f*/},
+		{1.0f, -1.0f, -1.0f, XMFLOAT3(1.0f, 0.0f, 0.0f), 0.0f, 0.0f},   // side 5
+		{1.0f, 1.0f, -1.0f, XMFLOAT3(1.0f, 0.0f, 0.0f), 0.0f, 1.0f},
+		{1.0f, -1.0f, 1.0f, XMFLOAT3(1.0f, 0.0f, 0.0f), 1.0f, 0.0f},
+		{1.0f, 1.0f, 1.0f, XMFLOAT3(1.0f, 0.0f, 0.0f), 1.0f, 1.0f},
 
-        {1.0f, -1.0f, -1.0f, XMFLOAT3(1.0f, 0.0f, 0.0f)/*, 0.0f, 0.0f, 0.0f*/},   // side 5
-        {1.0f, 1.0f, -1.0f, XMFLOAT3(1.0f, 0.0f, 0.0f)/*, 0.0f, 0.0f, 0.0f*/},
-        {1.0f, -1.0f, 1.0f, XMFLOAT3(1.0f, 0.0f, 0.0f)/*, 0.0f, 0.0f, 0.0f*/},
-        {1.0f, 1.0f, 1.0f, XMFLOAT3(1.0f, 0.0f, 0.0f)/*, 0.0f, 0.0f, 0.0f*/},
+		{-1.0f, -1.0f, -1.0f, XMFLOAT3(-1.0f, 0.0f, 0.0f), 0.0f, 0.0f}, // side 6
+		{-1.0f, -1.0f, 1.0f, XMFLOAT3(-1.0f, 0.0f, 0.0f), 0.0f, 1.0f},
+		{-1.0f, 1.0f, -1.0f, XMFLOAT3(-1.0f, 0.0f, 0.0f), 1.0f, 0.0f},
+		{-1.0f, 1.0f, 1.0f, XMFLOAT3(-1.0f, 0.0f, 0.0f), 1.0f, 1.0f},
+	};
 
-        {-1.0f, -1.0f, -1.0f, XMFLOAT3(-1.0f, 0.0f, 0.0f)/*, 0.0f, 0.0f, 0.0f*/}, // side 6
-        {-1.0f, -1.0f, 1.0f, XMFLOAT3(-1.0f, 0.0f, 0.0f)/*, 0.0f, 0.0f, 0.0f*/},
-        {-1.0f, 1.0f, -1.0f, XMFLOAT3(-1.0f, 0.0f, 0.0f)/*, 0.0f, 0.0f, 0.0f*/},
-        {-1.0f, 1.0f, 1.0f, XMFLOAT3(-1.0f, 0.0f, 0.0f)/*, 0.0f, 0.0f, 0.0f*/},
-    };
+	// The following examples show alternative initialization syntax, performed post-dynamic allocation. No variable Type can be specified post-dynamic allocation, as doing so would create a different new, and local, variable.
+	// 1. Listing assigned values without referencing the structure's members:
+	// OurVertices[0] = {-1.0f, -1.0f, 1.0f, XMFLOAT3(0.0f, 0.0f, 1.0f)};
+	//
+	// 2. Listing assigned values by referencing the structure's members:
+	//OurVertices[0].X = -1.0f;
+	//OurVertices[0].Y = -1.0f;
+	//OurVertices[0].Z = 1.0f;
+	//OurVertices[0].vnX = 0.0f;                            // All "vn*" assignments should be changed to reflect the use of XMFLOAT3.
+	//OurVertices[0].vnY = 0.0f;
+	//OurVertices[0].vnZ = 1.0f;
 
-    // The following examples show alternative initialization syntax, performed post-dynamic allocation. No variable Type can be specified post-dynamic allocation, as doing so would create a different new, and local, variable.
-    // 1. Listing assigned values without referencing the structure's members:
-    // OurVertices[0] = {-1.0f, -1.0f, 1.0f, XMFLOAT3(0.0f, 0.0f, 1.0f)};
-    //
-    // 2. Listing assigned values by referencing the structure's members:
-    //OurVertices[0].X = -1.0f;
-    //OurVertices[0].Y = -1.0f;
-    //OurVertices[0].Z = 1.0f;
-    //OurVertices[0].vnX = 0.0f;                            // All "vn*" assignments should be changed to reflect the use of XMFLOAT3.
-    //OurVertices[0].vnY = 0.0f;
-    //OurVertices[0].vnZ = 1.0f;
-
-    OurIndices = new DWORD[PrimitivesTotal * 3]{
-        0, 1, 2,                                                        // side 1
-        2, 1, 3,
-        4, 5, 6,                                                        // side 2
-        6, 5, 7,
-        8, 9, 10,                                                       // side 3
-        10, 9, 11,
-        12, 13, 14,                                                     // side 4
-        14, 13, 15,
-        16, 17, 18,                                                     // side 5
-        18, 17, 19,
-        20, 21, 22,                                                     // side 6
-        22, 21, 23,
-    };
+	OurIndices = new DWORD[PrimitivesTotal * 3]{
+		0, 1, 2,                                                        // side 1
+		2, 1, 3,
+		4, 5, 6,                                                        // side 2
+		6, 5, 7,
+		8, 9, 10,                                                       // side 3
+		10, 9, 11,
+		12, 13, 14,                                                     // side 4
+		14, 13, 15,
+		16, 17, 18,                                                     // side 5
+		18, 17, 19,
+		20, 21, 22,                                                     // side 6
+		22, 21, 23,
+	};
 
 	// Terminate this function with a return code indicating success.
 	return 0;

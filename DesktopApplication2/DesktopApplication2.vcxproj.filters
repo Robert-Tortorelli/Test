@@ -29,6 +29,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Text.obj" />
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="shaders.hlsl" />

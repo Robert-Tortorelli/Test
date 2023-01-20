@@ -40,9 +40,9 @@ int objReader(void);
 
 struct VERTEX
 {
-    float X, Y, Z;											// Geometric vertex.
-    DirectX::XMFLOAT3 VertexNormal;							// Vertex normal vector.
-//  DirectX::XMFLOAT3 VertexTextureCoordinate;				// Vertex texture coordinate.
+	float X, Y, Z;											// Geometric vertex.
+	DirectX::XMFLOAT3 VertexNormal;							// Vertex normal vector.
+	float U, V;												// Vertex texture coordinate.
 };
 
 // End: DirectX Global Declarations.
