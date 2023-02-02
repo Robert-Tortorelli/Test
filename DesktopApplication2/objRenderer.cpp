@@ -106,7 +106,7 @@ ID3D11Buffer *pCBuffer;										// The pointer to a buffer interface.				A buff
 // The matFinal member is a 4x4 matrix that represents the combined world, view, and projection transformations that are applied to the vertices of the geometry being rendered.
 //
 // The matRotate member is a 4x4 matrix that represents a rotation transformation that is applied to the vertices of the geometry.
-// It is a component of the matFinal matrix, but is also included separately because the normal vectors of the vertices also need to be transformed by the same rotation matrix in order to correctly calculate lighting effects.
+// It is a component of the world transformation, and therefore of the matFinal matrix, but is also included separately in the constant buffer structure because the vertex normal vectors of the vertices also need to be transformed by the same rotation matrix in order to correctly calculate lighting effects.
 //
 // The LightVector member is a 4D vector that represents the direction of the light source in 3D space.
 // This vector can be represented by any nonzero vector and the light will shine in that direction.
@@ -838,7 +838,7 @@ void InitGraphics(void)
 
 // RenderFrame function: Definition
 //   This function renders a single frame.
-//     1. Define the final transform matrix, matFinal, which contains all the information necessary to transform each vertex of the object being rendered.
+//     1. Define the final transformation matrix, matFinal, which contains all the information necessary to transform each vertex of the object being rendered.
 //
 //     2. Assign values that determine the attributes of light.
 //
@@ -850,11 +850,11 @@ void InitGraphics(void)
 void RenderFrame(void)
 {
 	//***
-	// 1. Define the final transform matrix, matFinal, which contains all the information necessary to transform each vertex of the object being rendered.
+	// 1. Define the final transformation matrix, matFinal, which contains all the information necessary to transform each vertex of the object being rendered.
 	//    The final matrix, matFinal = matWorld x matView x matProjection
 	//
 	//   i.	Define the world matrix, matWorld.
-	//		What is the purpose of the world transform?
+	//		What is the purpose of the world transformation?
 	//		A model-to-world transformation, colloquially called a world transformation (or model transformation), converts model vertices to world coordinates.
 	//		In other words, it places a model in a world at an exact point defined by coordinates, and involves:
 	//		1. Translation (movement)
@@ -870,8 +870,8 @@ void RenderFrame(void)
 	//		  matWorld = matTranslate x matRotate x matScale (translate first, providing a different result because when it is used first it offsets the object from the origin (0, 0, 0) before rotation takes place relative to the origin)
 	//
 	//  ii.	Define the view matrix, matView.
-	//		What is the purpose of the view transform?
-	//		The view transform converts model vertices to view coordinates.
+	//		What is the purpose of the view transformation?
+	//		The view transformation converts model vertices to view coordinates.
 	//		View transformation can be considered similar to setting up a virtual camera, and involves:
 	//		1. Position of the camera
 	//		2. Location the camera is looking at
@@ -881,8 +881,8 @@ void RenderFrame(void)
 	//		4. It's defined by a single matrix (matView), using a single DirectX function (XMMatrixLookAtLH).
 	//
 	// iii. Define the projection matrix, matProjection.
-	//		What is the purpose of the projection transform?
-	//		The projection transform converts model vertices to screen coordinates.
+	//		What is the purpose of the projection transformation?
+	//		The projection transformation converts model vertices to screen coordinates.
 	//		Projection transformation can be considered similar to setting up a camera lens, and involves:
 	//		1. Field of View
 	//		   In 3D graphics, the field of view is defined by setting the amount of radians allowed (vertically). The normal amount for this is 0.78539 (which is pi/4 radians, or 45 degrees).
@@ -892,10 +892,10 @@ void RenderFrame(void)
 	//		3. It's defined by a single matrix (matProjection), using a single DirectX function (XMMatrixPerspectiveFovLH).
 	//		   However, it's probably the most complex type of transformation, and the underlying math performed by the DirectX function is complicated.
 	//
-	//  iv.	Define the final transform matrix, matFinal.
+	//  iv.	Define the final transformation matrix, matFinal.
 	//		matFinal = matWorld x matView x matProjection
-	//		Each vertex is multiplied by the final transform matrix.
-	//		The final transform matrix is one member of the C++ constant buffer structure that matches the HLSL constant buffer structure. The C++ constant buffer structure will be copied to the HLSL constant buffer structure (they are, but do not have to be, named the same).
+	//		Each vertex is multiplied by the final transformation matrix.
+	//		The final transformation matrix is one member of the C++ constant buffer structure that matches the HLSL constant buffer structure. The C++ constant buffer structure will be copied to the HLSL constant buffer structure (they are, but do not have to be, named the same).
 	//		Using the HLSL constant buffer is efficient, as multiplication and other common operations can be performed on its members by the GPU's vertex shader.
 	//***
 
@@ -908,8 +908,8 @@ void RenderFrame(void)
 	//   Builds a matrix that rotates around the y-axis.
 	static float Angle = 0.0f; Angle += 0.001f;				// The variable Angle must be declared static so that its value is preserved though multiple calls of the function that contains it. This supports incremental frame by frame changes to the rendered object.
 	matRotateY = XMMatrixRotationY(Angle);					// Angle of rotation around the y-axis, in radians. Angles are measured clockwise when looking along the rotation axis toward the origin.
-	ConstantBuffer.matRotate = matRotateY;					// The final rotation matrix is the product of all defined rotation matrices.		   Here, only matRotateY is defined.
-	matWorld = ConstantBuffer.matRotate;					// The world transform is a function of translation (movement), rotation, and scaling. Here, only rotation is used.
+	ConstantBuffer.matRotate = matRotateY;					// The final rotation matrix is the product of all defined rotation matrices.				Here, only matRotateY is defined.
+	matWorld = ConstantBuffer.matRotate;					// The world transformation is a function of translation (movement), rotation, and scaling. Here, only rotation is used.
 
 	// Define the view matrix, matView.
 	// XMMatrixLookAtLH function:
@@ -942,10 +942,10 @@ void RenderFrame(void)
 		NearZ,												// Distance to the near clipping plane. Must be greater than zero.
 		FarZ);												// Distance to the far clipping plane. Must be greater than zero.
 
-	// Define the final transform matrix, matFinal.
+	// Define the final transformation matrix, matFinal.
 	ConstantBuffer.matFinal = matWorld * matView * matProjection;
 
-	// End: 1. Define the final transform matrix, matFinal, which contains all the information necessary to transform each vertex of the object being rendered.
+	// End: 1. Define the final transformation matrix, matFinal, which contains all the information necessary to transform each vertex of the object being rendered.
 
 	//***
 	// 2. Assign values that determine the attributes of light.
@@ -1054,7 +1054,7 @@ void RenderFrame(void)
 	// *** This code that draws a second instance of the same object is written in a somewhat self-contained "one-off" style, compared to other code in this program, and for this reason can be improved.
 	// *** For example, the variable matTranslateY is declared and defined here, rather than at the start of this function like most other variables.
 	//
-	// Update the final transform matrix, matFinal, using different world coordinates that offset the second instance of the object from the first instance of the object.
+	// Update the final transformation matrix, matFinal, using different world coordinates that offset the second instance of the object from the first instance of the object.
 	// XMMatrixTranslation function:
 	//   Builds a translation matrix from the specified offsets.
 	// Translate the second instance of the object in a positive direction along the y-axis.
@@ -1062,9 +1062,9 @@ void RenderFrame(void)
 	// Rotate the second instance of the object counterclockwise.
 	static float Angle2 = 0.0f; Angle2 -= 0.001f;			// The variable Angle2 must be declared static so that its value is preserved though multiple calls of the function that contains it. This supports incremental frame by frame changes to the rendered object.
 	matRotateY = XMMatrixRotationY(Angle2);					// Angle of rotation around the y-axis, in radians. Angles are measured clockwise when looking along the rotation axis toward the origin.
-	ConstantBuffer.matRotate = matRotateY;					// The final rotation matrix is the product of all defined rotation matrices.		   Here, only matRotateY is defined.
-	matWorld = matTranslateY * ConstantBuffer.matRotate;	// The world transform is a function of translation (movement), rotation, and scaling. Here, only translation and rotation are used.
-	// Update the final transform matrix, matFinal, by multiplying the new world matrix by the original view and projection matrices.
+	ConstantBuffer.matRotate = matRotateY;					// The final rotation matrix is the product of all defined rotation matrices.				Here, only matRotateY is defined.
+	matWorld = matTranslateY * ConstantBuffer.matRotate;	// The world transformation is a function of translation (movement), rotation, and scaling. Here, only translation and rotation are used.
+	// Update the final transformation matrix, matFinal, by multiplying the new world matrix by the original view and projection matrices.
 	ConstantBuffer.matFinal = matWorld * matView * matProjection;
 	//
 	// Prepare to draw the second instance of the object using the updated constant buffer.
