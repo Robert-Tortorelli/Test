@@ -14,12 +14,25 @@
 // All variables and functions coded in C++ (.cpp files) are stored in CPU memory.
 //
 // Authorship
-// This program is based on "DirectX 11 Win32 Desktop: Direct3D: Moving to 3D: Lesson 3: Simple Modeling" and earlier lessons by Chris Hanson (https://DirectXTutorial.com).
+// This program is based on "DirectX 11 Win32 Desktop: Direct3D: Moving to 3D: Lesson 3: Simple Modeling" and earlier lessons by Chris Hanson (http://DirectXTutorial.com).
 // All defects in this program are solely the responsibility of Robert John Tortorelli.
 
 //***
 // Global Declarations.
 //***
+
+// Terminology
+//   Textures:
+//   The word texture has two distinct meanings in DirectX programming. Both meanings are used in this program.
+//
+//   1. The terms texture, texture image, and image texture refers to a computer graphics image applied to the surface of a 3D object.
+//      A texel (a texture element or texture pixel) is the fundamental unit of a texture map.
+//      Textures are represented by arrays of texels representing the texture space, just as other images are represented by arrays of pixels.
+//      A mipmap (also MIP map) or pyramid is a pre-calculated, optimized sequences of images, each of which is a progressively lower resolution representation of the previous image.
+//      The CreateWICTextureFromFile function is one way to create a texture from an image file, such as a .png file.
+//
+//   2. The terms texture buffer, texture array, and texture interface refer to DirectX programming constructs.
+//      These terms are distinct from the term texture images defined above.
 
 // Wavefront .obj file I/O (objReader function) Header File.
 // Declare external global variables in this header file, and include it in all source files that reference these external global variables.
@@ -82,22 +95,24 @@ using namespace DirectX;
 #define SCREEN_HEIGHT 600									// Visual Studio recommends converting macros to expressions: constexpr auto SCREEN_HEIGHT = 600;
 
 // DirectX Global Interface Declarations.
-IDXGISwapChain *swapchain;									// The pointer to the swap chain interface.			The swap chain interface implements one or more surfaces (image-data objects) for storing rendered data before presenting it to an output. It is the series of buffer resources (front buffer, back buffers) which take turns being rendered on.
-ID3D11Device *dev;											// The pointer to the device interface.				A device is the virtual representation of the computer's display adapter. It is used to access video memory and create other Direct3D COM objects, such as graphics and special effects.
-ID3D11DeviceContext *devcon;								// The pointer to the device context interface.		A device context is responsible for managing the graphics pipeline. It control the rendering sequence and the process that translates 3D models into the final 2D image that appears on the screen.
+IDXGISwapChain* swapchain;									// The pointer to the swap chain interface.			The swap chain interface implements one or more surfaces (image-data objects) for storing rendered data before presenting it to an output. It is the series of buffer resources (front buffer, back buffers) which take turns being rendered on.
+ID3D11Device* dev;											// The pointer to the device interface.				A device is the virtual representation of the computer's display adapter. It is used to access video memory and create other Direct3D COM objects, such as graphics and special effects.
+ID3D11DeviceContext* devcon;								// The pointer to the device context interface.		A device context is responsible for managing the graphics pipeline. It control the rendering sequence and the process that translates 3D models into the final 2D image that appears on the screen.
 
-ID3D11Texture2D *pDepthBuffer;								// The pointer to a 2D texture interface.			A 2D texture interface manages texel data, which is structured memory. In this case the array of (in this case an array of one) 2D textures that serve as the depth-stencil surface.				The ID3D11Texture2D interface inherits from the ID3D11Resource interface.
-ID3D11DepthStencilView *depthbuffer;						// The pointer to the depth-stencil view interface.	A depth-stencil view interface accesses a texture resource (via the depth-stencil surface interface, pDepthBuffer) during depth-stencil testing. The stencil buffer typically shares the same memory space as the depth buffer (z-buffer). The depth-stencil view interface created by this program will only interpret the depth-stencil surface as a depth buffer (z-buffer) rather than a depth-stencil buffer.
+ID3D11Texture2D* pDepthBuffer;								// The pointer to a 2D texture interface.			A 2D texture interface manages texel data, which is structured memory. In this case the 2D texture that serves as the depth-stencil surface.
+ID3D11DepthStencilView* depthbuffer;						// The pointer to the depth-stencil view interface.	A depth-stencil view interface accesses a texture resource (via the depth-stencil surface interface, pDepthBuffer) during depth-stencil testing. The stencil buffer typically shares the same memory space as the depth buffer (z-buffer). The depth-stencil view interface created by this program will only interpret the depth-stencil surface as a depth buffer (z-buffer) rather than a depth-stencil buffer.
 
-ID3D11Texture2D *pBackBuffer;								// The pointer to a 2D texture interface.			A 2D texture interface manages texel data, which is structured memory. In this case for the back buffer interface.																					The ID3D11Texture2D interface inherits from the ID3D11Resource interface.
-ID3D11RenderTargetView *backbuffer;							// The pointer to the render target view interface. A render target view interface identifies the render target subresources (pBackBuffer) that can be accessed during rendering, in this case the back buffer.
+ID3D11Texture2D* pBackBuffer;								// The pointer to a 2D texture interface.			A 2D texture interface manages texel data, which is structured memory. In this case for the back buffer interface.
+ID3D11RenderTargetView* backbuffer;							// The pointer to the render target view interface. A render target view interface identifies the render target subresources (pBackBuffer) that can be accessed during rendering, in this case the back buffer.
 
-ID3D11InputLayout *pLayout;									// The pointer to the input-layout interface.		An input-layout interface holds a definition of how to feed vertex data that is laid out in memory into the input-assembler stage of the graphics pipeline.
-ID3D11VertexShader *pVS;									// The pointer to the vertex shader interface.		A vertex shader interface manages an executable program (a vertex shader) that controls the vertex shader stage of the graphics pipeline.
-ID3D11PixelShader *pPS;										// The pointer to the pixel shader interface.		A pixel shader interface manages an executable program (a pixel shader) that controls the pixel shader stage of the graphics pipeline.
-ID3D11Buffer *pVBuffer;										// The pointer to a buffer interface.				A buffer interface accesses a buffer resource, which is unstructured memory. In this case the vertex buffer.																						The ID3D11Buffer interface inherits from the ID3D11Resource interface.
-ID3D11Buffer *pIBuffer;										// The pointer to a buffer interface.				A buffer interface accesses a buffer resource, which is unstructured memory. In this case the index buffer.																							The ID3D11Buffer interface inherits from the ID3D11Resource interface.
-ID3D11Buffer *pCBuffer;										// The pointer to a buffer interface.				A buffer interface accesses a buffer resource, which is unstructured memory. In this case the constant buffer.																						The ID3D11Buffer interface inherits from the ID3D11Resource interface.
+ID3D11InputLayout* pLayout;									// The pointer to the input-layout interface.		An input-layout interface holds a definition of how to feed vertex data that is laid out in memory into the input-assembler stage of the graphics pipeline.
+ID3D11VertexShader* pVS;									// The pointer to the vertex shader interface.		A vertex shader interface manages an executable program (a vertex shader) that controls the vertex shader stage of the graphics pipeline.
+ID3D11PixelShader* pPS;										// The pointer to the pixel shader interface.		A pixel shader interface manages an executable program (a pixel shader) that controls the pixel shader stage of the graphics pipeline.
+ID3D11Buffer* pVBuffer;										// The pointer to a buffer interface.				A buffer interface accesses a buffer resource, which is unstructured memory. In this case the vertex buffer.
+ID3D11Buffer* pIBuffer;										// The pointer to a buffer interface.				A buffer interface accesses a buffer resource, which is unstructured memory. In this case the index buffer.
+ID3D11Buffer* pCBuffer;										// The pointer to a buffer interface.				A buffer interface accesses a buffer resource, which is unstructured memory. In this case the constant buffer.
+
+ID3D11ShaderResourceView* pTextureView;						// The pointer to a shader resource view interface.	A shader resource view interface specifies the subresource a shader can access during rendering. In this case the texture image.
 
 // Declare the C++ constant buffer structure used to assign values to the HLSL constant buffer structure.
 // This structure represents a constant buffer used in the graphics rendering pipeline.
@@ -408,11 +423,6 @@ void InitD3D(HWND hWnd)										// The HWND handle for the window.
 	//      1. A view must be created and bound to the graphics pipeline.
 	//      2. Using a view, texture data can be interpreted at run time within certain restrictions (textures cannot be bound directly to the graphics pipeline).
 	//         For example, the depth-stencil view interface "depthbuffer", which effectively is the depth buffer (z-buffer), interprets texture data as a depth buffer (z-buffer).
-	// 
-	//    In computer graphics,
-	//      A texel (a texture element or texture pixel) is the fundamental unit of a texture map.
-	//      Textures are represented by arrays of texels representing the texture space, just as other images are represented by arrays of pixels.
-	//      A mipmap (also MIP map) or pyramid is a pre-calculated, optimized sequences of images, each of which is a progressively lower resolution representation of the previous image.
 	//***
 
 	// Create the 2D texture description structure used to describe the 2D texture array (in this case an array of one) that will serve as the depth-stencil surface.
@@ -424,9 +434,9 @@ void InitD3D(HWND hWnd)										// The HWND handle for the window.
 	texd.Height = SCREEN_HEIGHT;							// Assigned a value specifying the texture height (in texels). The range is constrained by the Direct3D feature level of the device.
 	texd.MipLevels = 1;										// Assigned a value specifying the maximum number of mipmap levels in the texture. Use 1 for a multisampled texture; or 0 to generate a full set of subtextures.
 	texd.ArraySize = 1;										// Assigned a value specifying the number of textures in the 2D texture array. The range is constrained by the Direct3D feature level of the device.
-	texd.Format = DXGI_FORMAT_D32_FLOAT;					// Assigned a value specifying the texture format.																				A value of the DXGI_FORMAT enumerated type,		i.e., DXGI_FORMAT_D32_FLOAT:	A single-component, 32-bit floating-point format that supports 32 bits for depth.
+	texd.Format = DXGI_FORMAT_D32_FLOAT;					// Assigned a value specifying the texture format.																			  A value of the DXGI_FORMAT enumerated type,	  i.e., DXGI_FORMAT_D32_FLOAT:	  A single-component, 32-bit floating-point format that supports 32 bits for depth.
 	texd.SampleDesc.Count = 4;								// .Count: A member of DXGI_SAMPLE_DESC structure assigned a value specifying the number of multisamples per pixel. Also see scd.SampleDesc.Count
-	texd.BindFlags = D3D11_BIND_DEPTH_STENCIL;				// Assigned values in any combination by a bitwise OR operation specifying the flags for binding to graphics pipeline stages.	A value of the D3D11_BIND_FLAG enumerated type,	i.e., D3D11_BIND_DEPTH_STENCIL:	Bind a texture as a depth-stencil target for the output-merger stage of the graphics pipeline.
+	texd.BindFlags = D3D11_BIND_DEPTH_STENCIL;				// Assigned values in any combination by a bitwise OR operation specifying the flags for binding to graphics pipeline stages. A value of the D3D11_BIND_FLAG enumerated type, i.e., D3D11_BIND_DEPTH_STENCIL: Bind a texture as a depth-stencil target for the output-merger stage of the graphics pipeline.
 
 	// ID3D11Device::CreateTexture2D member function:
 	//   Create the 2D texture array (in this case an array of one) that will serve as the depth-stencil surface.
@@ -551,7 +561,8 @@ void InitPipeline(void)
 	//      Optionally, this shader can output the color, brightness, contrast, and other characteristics of a single pixel.
 	//***
 
-	ID3DBlob *VS, *PS;										// VS (Vertex Shader) and PS (Pixel Shader) are pointers to the ID3DBlob interface used to return Direct3D data of arbitrary length.
+	ID3DBlob* VS;											// VS (Vertex Shader) is a pointer to the ID3DBlob interface used to return Direct3D data of arbitrary length.
+	ID3DBlob* PS;											// PS (Pixel Shader)  is a pointer to the ID3DBlob interface used to return Direct3D data of arbitrary length.
 
 	// D3DCompileFromFile function:
 	//   Compile Microsoft High Level Shader Language (HLSL) code into bytecode for a given target.
@@ -617,28 +628,28 @@ void InitPipeline(void)
 	// Define the position input element of the VERTEX structure OurVertices.
 	ied[0].SemanticName = "POSITION";						// Assigned a value specifying the HLSL semantic name associated with this element in a shader input signature.
 	ied[0].SemanticIndex = 0;								// Assigned a value specifying the semantic index for the element. A semantic index modifies a semantic with an integer index number. A semantic index is only needed in a case where there is more than one element with the same semantic name.
-	ied[0].Format = DXGI_FORMAT_R32G32B32_FLOAT;			// Assigned a value specifying the data type of the element.					  A value of the DXGI_FORMAT enumerated type,				 i.e., DXGI_FORMAT_R32G32B32_FLOAT:	   A three-component, 96-bit floating-point format that supports 32 bits for the red channel, 32 bits for the green channel and 32 bits for the blue channel.
+	ied[0].Format = DXGI_FORMAT_R32G32B32_FLOAT;			// Assigned a value specifying the data type of the element.					  A value of the DXGI_FORMAT enumerated type,				 i.e., DXGI_FORMAT_R32G32B32_FLOAT: A three-component, 96-bit floating-point format that supports 32 bits for the red channel, 32 bits for the green channel and 32 bits for the blue channel.
 	ied[0].InputSlot = 0;									// Assigned a value specifying the integer value that identifies the input-assembler (see input slot).
 	ied[0].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;// Assigned a value specifying the optional offset (in bytes) from the start of the vertex. Use D3D11_APPEND_ALIGNED_ELEMENT for convenience to define the current element directly after the previous one, including any packing if necessary. Position has an offset of 0 in this program.
-	ied[0].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;	// Assigned a value specifying the input data slot class for a single input slot. A value of the D3D11_INPUT_CLASSIFICATION enumerated type, i.e., D3D11_INPUT_PER_VERTEX_DATA:	   Input data is per-vertex data.
+	ied[0].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;	// Assigned a value specifying the input data slot class for a single input slot. A value of the D3D11_INPUT_CLASSIFICATION enumerated type, i.e., D3D11_INPUT_PER_VERTEX_DATA: Input data is per-vertex data.
 	ied[0].InstanceDataStepRate = 0;						// Assigned a value specifying the number of instances to draw using the same per-instance data before advancing in the buffer by one element. This value must be 0 for an element that contains per-vertex data (the slot class is set to D3D11_INPUT_PER_VERTEX_DATA).
 
 	// Define the normal   input element of the VERTEX structure OurVertices.
 	ied[1].SemanticName = "NORMAL";							// Assigned a value specifying the HLSL semantic name associated with this element in a shader input signature.
 	ied[1].SemanticIndex = 0;								// Assigned a value specifying the semantic index for the element. A semantic index modifies a semantic with an integer index number. A semantic index is only needed in a case where there is more than one element with the same semantic name.
-	ied[1].Format = DXGI_FORMAT_R32G32B32_FLOAT;			// Assigned a value specifying the data type of the element.					  A value of the DXGI_FORMAT enumerated type,				 i.e., DXGI_FORMAT_R32G32B32_FLOAT:	   A three-component, 96-bit floating-point format that supports 32 bits for the red channel, 32 bits for the green channel and 32 bits for the blue channel.
+	ied[1].Format = DXGI_FORMAT_R32G32B32_FLOAT;			// Assigned a value specifying the data type of the element.					  A value of the DXGI_FORMAT enumerated type,				 i.e., DXGI_FORMAT_R32G32B32_FLOAT: A three-component, 96-bit floating-point format that supports 32 bits for the red channel, 32 bits for the green channel and 32 bits for the blue channel.
 	ied[1].InputSlot = 0;									// Assigned a value specifying the integer value that identifies the input-assembler (see input slot).
 	ied[1].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;// Assigned a value specifying the optional offset (in bytes) from the start of the vertex. Use D3D11_APPEND_ALIGNED_ELEMENT for convenience to define the current element directly after the previous one, including any packing if necessary. Normal has an offset of 12 in this program.
-	ied[1].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;	// Assigned a value specifying the input data slot class for a single input slot. A value of the D3D11_INPUT_CLASSIFICATION enumerated type, i.e., D3D11_INPUT_PER_VERTEX_DATA:	   Input data is per-vertex data.
+	ied[1].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;	// Assigned a value specifying the input data slot class for a single input slot. A value of the D3D11_INPUT_CLASSIFICATION enumerated type, i.e., D3D11_INPUT_PER_VERTEX_DATA: Input data is per-vertex data.
 	ied[1].InstanceDataStepRate = 0;						// Assigned a value specifying the number of instances to draw using the same per-instance data before advancing in the buffer by one element. This value must be 0 for an element that contains per-vertex data (the slot class is set to D3D11_INPUT_PER_VERTEX_DATA).
 
 	// Define the texture  input element of the VERTEX structure OurVertices.
 	ied[2].SemanticName = "TEXCOORD";						// Assigned a value specifying the HLSL semantic name associated with this element in a shader input signature.
 	ied[2].SemanticIndex = 0;								// Assigned a value specifying the semantic index for the element. A semantic index modifies a semantic with an integer index number. A semantic index is only needed in a case where there is more than one element with the same semantic name.
-	ied[2].Format = DXGI_FORMAT_R32G32_FLOAT;				// Assigned a value specifying the data type of the element.					  A value of the DXGI_FORMAT enumerated type,				 i.e., DXGI_FORMAT_R32G32_FLOAT:	   A two-component, 64-bit floating-point format that supports 32 bits for the red channel and 32 bits for the green channel.
+	ied[2].Format = DXGI_FORMAT_R32G32_FLOAT;				// Assigned a value specifying the data type of the element.					  A value of the DXGI_FORMAT enumerated type,				 i.e., DXGI_FORMAT_R32G32_FLOAT:	A two-component, 64-bit floating-point format that supports 32 bits for the red channel and 32 bits for the green channel.
 	ied[2].InputSlot = 0;									// Assigned a value specifying the integer value that identifies the input-assembler (see input slot).
 	ied[2].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;// Assigned a value specifying the optional offset (in bytes) from the start of the vertex. Use D3D11_APPEND_ALIGNED_ELEMENT for convenience to define the current element directly after the previous one, including any packing if necessary. Normal has an offset of 12 in this program.
-	ied[2].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;	// Assigned a value specifying the input data slot class for a single input slot. A value of the D3D11_INPUT_CLASSIFICATION enumerated type, i.e., D3D11_INPUT_PER_VERTEX_DATA:	   Input data is per-vertex data.
+	ied[2].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;	// Assigned a value specifying the input data slot class for a single input slot. A value of the D3D11_INPUT_CLASSIFICATION enumerated type, i.e., D3D11_INPUT_PER_VERTEX_DATA: Input data is per-vertex data.
 	ied[2].InstanceDataStepRate = 0;						// Assigned a value specifying the number of instances to draw using the same per-instance data before advancing in the buffer by one element. This value must be 0 for an element that contains per-vertex data (the slot class is set to D3D11_INPUT_PER_VERTEX_DATA).
 
 	// ID3D11Device::CreateInputLayout member function:
@@ -678,7 +689,7 @@ void InitPipeline(void)
 	//      A constant buffer does not require a view to be bound to the pipeline.
 	//
 	//      Texture buffers are accessed like textures and perform better for arbitrarily indexed data.
-	//      A texture buffer is a specialized buffer resource that is accessed like a texture. Texture access (as compared with buffer access) can have better performance for arbitrarily indexed data. You can bind up to 128 texture buffers per graphics pipeline stage.
+	//      A texture buffer is a specialized buffer resource that is accessed like a texture. Texture access (as compared with standard buffer access) can have better performance for arbitrarily indexed data. You can bind up to 128 texture buffers per graphics pipeline stage.
 	//      A texture buffer requires a view and must be bound to a texture slot (or must be bound with SetTextureBuffer when using an effect).
 	//
 	//      Regardless of which type of resource you use, there is no limit to the number of constant buffers or texture buffers a program can create.
@@ -724,7 +735,7 @@ void InitPipeline(void)
 //
 //     4. Create the index buffer and assign values to it from the variable OurIndices.
 //
-//     5. Create the texture from a file.
+//     5. Create the texture image from an image file.
 void InitGraphics(void)
 {
 	//***
@@ -818,22 +829,25 @@ void InitGraphics(void)
 	// End 4. Create the index buffer and assign values to it from the variable OurIndices.
 
 	//***
-	// 5. Create the texture from a file.
+	// 5. Create the texture image from an image file.
 	//***
 
-	// Comment all statements and parameters in this section ("5."), (and in the new "texture" code in HLSL, including the TEXCOORD semantic):
-	ID3D11Resource *pTexture;								// Move this statement to the start of this program.
-	ID3D11ShaderResourceView *pTextureView;					// Move this statement to the start of this program.
+	// DirectX::CreateWICTextureFromFile function:
+	//   Loads a WIC-supported bitmap file from disk, creates a Direct3D 11 resource from it, and optionally a Direct3D 11 shader resource view.
+	CreateWICTextureFromFile(dev,							// A pointer to the device interface.
+		L"Wood.png",										// The filename of the texture image file.
+		NULL,												// NULL, as in most use cases for rendering you only need the shader resource view interface (the parameter below).
+															// Otherwise, you would specify &pTexture:
+															// &pTexture	 is the address of a pointer, pTexture,		to the resource				interface for the resource	  created, in this case a texture image.
+		&pTextureView);										// &pTextureView is the address of a pointer, pTextureView, to the shader resource view interface for the subresource created, in this case a texture image.
 
-	CreateWICTextureFromFile(dev,
-		devcon,
-		L"Wood.png",
-		&pTexture,
-		&pTextureView);
+	// ID3D11DeviceContext::PSSetShaderResources member function:
+	//   Bind an array of shader resources to the pixel shader stage.
+	devcon->PSSetShaderResources(0,							// Index into the device's zero-based array (in this case an array of one) to begin setting shader resources to.
+		1,													// Number of shader resources to set.
+		&pTextureView);										// &pTextureView is the address of a pointer, pTextureView, to the array of (in this case an array of one) shader resource view interfaces for the subresources created, in this case a texture image.
 
-	devcon->PSSetShaderResources(0, 1, &pTextureView);
-
-	// End 5. Create the texture from a file.
+	// End 5. Create the texture image from an image file.
 }
 
 // RenderFrame function: Definition
@@ -906,10 +920,11 @@ void RenderFrame(void)
 	//   This matrix is updated each frame, causing the object to rotate.
 	// XMMatrixRotationY function:
 	//   Builds a matrix that rotates around the y-axis.
-	static float Angle = 0.0f; Angle += 0.001f;				// The variable Angle must be declared static so that its value is preserved though multiple calls of the function that contains it. This supports incremental frame by frame changes to the rendered object.
-	matRotateY = XMMatrixRotationY(Angle);					// Angle of rotation around the y-axis, in radians. Angles are measured clockwise when looking along the rotation axis toward the origin.
+	static float Angle = 0.0f;								// "Angle" must be declared static so that its value is preserved though multiple calls to the function that declares it. This supports incremental frame by frame changes to the rendered object.
+	Angle += 0.001f;										// This is the incremental frame by frame change to the rendered object.
+	matRotateY = XMMatrixRotationY(Angle);					// "Angle" is the angle of rotation around the y-axis, in radians. Angles are measured clockwise when looking along the rotation axis toward the origin.
 	ConstantBuffer.matRotate = matRotateY;					// The final rotation matrix is the product of all defined rotation matrices.				Here, only matRotateY is defined.
-	matWorld = ConstantBuffer.matRotate;					// The world transformation is a function of translation (movement), rotation, and scaling. Here, only rotation is used.
+	matWorld = ConstantBuffer.matRotate;					// The world transformation is a function of translation (movement), rotation, and scaling. Here, only rotation   is defined.
 
 	// Define the view matrix, matView.
 	// XMMatrixLookAtLH function:
@@ -954,6 +969,19 @@ void RenderFrame(void)
 	ConstantBuffer.LightVector = XMFLOAT4(1.0f, 1.0f, 1.0f, 0.0f);
 	ConstantBuffer.LightColor = XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f);
 	ConstantBuffer.AmbientColor = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.0f);
+
+	// Sample alternative values and their effect.
+	//ConstantBuffer.LightVector = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f); // Dark
+	//ConstantBuffer.LightVector = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f); // Medium
+	//ConstantBuffer.LightVector = XMFLOAT4(2.0f, 2.0f, 2.0f, 2.0f); // Medium
+	//
+	//ConstantBuffer.LightColor = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f); // Dark
+	//ConstantBuffer.LightColor = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f); // Medium
+	//ConstantBuffer.LightColor = XMFLOAT4(2.0f, 2.0f, 2.0f, 2.0f); // Light
+	//
+	//ConstantBuffer.AmbientColor = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f); // Dark
+	//ConstantBuffer.AmbientColor = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f); // Medium
+	//ConstantBuffer.AmbientColor = XMFLOAT4(2.0f, 2.0f, 2.0f, 2.0f); // Light
 
 	// End: 2. Assign values that determine the attributes of light.
 
@@ -1052,7 +1080,7 @@ void RenderFrame(void)
 	// Draw a second instance of the same object to the scene, using different world coordinates that offset it from the first instance of the object.
 	//
 	// *** This code that draws a second instance of the same object is written in a somewhat self-contained "one-off" style, compared to other code in this program, and for this reason can be improved.
-	// *** For example, the variable matTranslateY is declared and defined here, rather than at the start of this function like most other variables.
+	// *** For example, matTranslateY and Angle2 are declared and defined here, rather than at the start of this function like most other variables.
 	//
 	// Update the final transformation matrix, matFinal, using different world coordinates that offset the second instance of the object from the first instance of the object.
 	// XMMatrixTranslation function:
@@ -1060,7 +1088,7 @@ void RenderFrame(void)
 	// Translate the second instance of the object in a positive direction along the y-axis.
 	XMMATRIX matTranslateY = XMMatrixTranslation(0.0f, 3.0f, 0.0f);
 	// Rotate the second instance of the object counterclockwise.
-	static float Angle2 = 0.0f; Angle2 -= 0.001f;			// The variable Angle2 must be declared static so that its value is preserved though multiple calls of the function that contains it. This supports incremental frame by frame changes to the rendered object.
+	static float Angle2 = 0.0f; Angle2 -= 0.001f;			// Angle2 must be declared static so that its value is preserved though multiple calls of the function that contains it. This supports incremental frame by frame changes to the rendered object.
 	matRotateY = XMMatrixRotationY(Angle2);					// Angle of rotation around the y-axis, in radians. Angles are measured clockwise when looking along the rotation axis toward the origin.
 	ConstantBuffer.matRotate = matRotateY;					// The final rotation matrix is the product of all defined rotation matrices.				Here, only matRotateY is defined.
 	matWorld = matTranslateY * ConstantBuffer.matRotate;	// The world transformation is a function of translation (movement), rotation, and scaling. Here, only translation and rotation are used.
