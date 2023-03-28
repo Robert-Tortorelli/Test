@@ -32,7 +32,7 @@ int objReader(void);
 // DirectXMath Header File.									// The DirectXMath API provides SIMD-friendly C++ types and functions for common linear algebra and graphics math operations common to DirectX programs.
 #include <directxmath.h>                                    // Used with the namespace DirectX.
 
-// Declare the VERTEX 'named structure' data type (a dynamic array of structures) with a member list representing the vertex elements of one vertex of the object.
+// Declare the VERTEX 'named structure' data type (a dynamic array of structures) with members defining the attributes of one vertex of the associated object.
 // The input-layout object describes the VERTEX structure.
 // The input element description structure defines the input-layout object.
 //***
@@ -40,9 +40,9 @@ int objReader(void);
 
 struct VERTEX
 {
-	float X, Y, Z;											// Geometric vertex.
-	DirectX::XMFLOAT3 VertexNormal;							// Vertex normal vector.
-	float U, V;												// Vertex texture coordinate.
+	float X, Y, Z;											// Geometric vertex.		  ("v"	element in the Wavefront .obj file)
+	DirectX::XMFLOAT3 VertexNormal;							// Vertex normal vector.	  ("vn" element in the Wavefront .obj file)
+	float U, V;												// Vertex texture coordinate. ("vt" element in the Wavefront .obj file)
 };
 
 // End: DirectX Global Declarations.
@@ -54,20 +54,20 @@ struct VERTEX
 // Declare global variables external by declaring them 'extern' here. Otherwise building the project results in Visual Studio Linker Tools Error LNK2005 (symbol already defined in object).
 // The objReader function parses a single 3D object's descriptive information from a Wavefront .obj file and uses it to populate the variables OurVertices and OurIndices, which are used when rendering that object.
 //
-// OurVertices, a variable containing values formatted for DirectX, is the array of vertex elements for all vertices. It is used to initialize the GPU's vertex buffer.
-// GeometricVerticesTotal is computed at run time to be the total number of geometric vertices comprising the object, e.g., the number of 'v' lines in the Wavefront .obj file defining a geometric vertex. 8 geometric vertices comprise the 8 corners of a cube object, each specified by one geometric vertex 'v' line (these could be repeated in an inefficient Wavefront .obj file).
+// OurVertices (used to initialize the GPU's vertex buffer), a variable containing values formatted for DirectX, is the array of all sets of vertex attributes.
+// Each primitive's set of vertex attributes are specified in the Wavefront .obj file as multiple elements ("v", "vt", "vn").
 // After GeometricVerticesTotal is computed, OurVertices is allocated as an array (OurVertices[VertexNo]) of type VERTEX using OurVertices = new VERTEX[GeometricVerticesTotal].
-extern VERTEX* OurVertices;									// A pointer to the first element in an array of VERTEX structures, with each element representing one geometric vertex.
-extern int GeometricVerticesTotal;
+extern VERTEX* OurVertices;									// A pointer to the first element in an array of VERTEX structures, with each array element representing one vertex and its attributes.
+extern int GeometricVerticesTotal;							// The total number of sets of vertex attributes.
 //
-// OurIndices, a variable containing values formatted for DirectX, is the array of all primitive vertex indices, with each vertex index referencing one geometric vertex in OurVertices. It is used to initialize the GPU's index buffer.
-// Each primitive's vertex indices are specified in the Wavefront .obj file as one vertex index face element line starting with the letter f and followed by (v1 v2 v3 ... vi) vertex indices, e.g., three vertex indices for a triangle primitive.
-// PrimitivesTotal is computed at run time to be the total number of face elements comprising the object, e.g., the number of 'f' lines in the Wavefront .obj file defining a face element.  12 triangle primitives comprise a cube's 6 sides, each specified by one face element 'f' line.
-// The total number of primitive vertex indices is the total number of primitives (PrimitivesTotal) times the number of vertices in each primitive, e.g., each of the 12 triangle primitives has 3 vertices, therefore (PrimitivesTotal * 3) = (12 * 3) = 36 primitive vertex indices.
-// In this example, each primitive vertex index has a value of 0 - 7 (as per DirectX formatting) referencing one of the 8 geometric vertices in OurVertices.
+// OurIndices (used to initialize the GPU's index buffer), a variable containing values formatted for DirectX, is the array of all geometric vertex indices, with each geometric vertex index referencing the associated set of vertex attributes for 1 vertex in OurVertices, i.e., geometric vertex, vertex texture coordinate, and vertex normal vector in OurVertices.
+// For example, in one face element ("f") of the Wavefront .obj file, geometric vertex index.1, vertex texture coordinate index.1, and vertex normal vector index.1 are used to identify the corresponding geometric vertex.1, vertex texture coordinate.1, and vertex normal vector.1 for vertex.1 in the Wavefront .obj file, and store them as an associated set of vertex attributes in OurVertices(geometric vertex index.1).
+// Each face element specifies the indices for all vertices of one primitive (three vertices of a triangle primitive).
+// PrimitivesTotal is computed as the total number of face elements defining an object. A cube's 6 sides are comprised of 12 triangle primitives, each specified by one face element. Therefore PrimitivesTotal = 12.
+// The total number of primitive geometric vertex indices is the total number of primitives (PrimitivesTotal) times the number of geometric vertices in each primitive, e.g., each of the 12 triangle primitives has 3 geometric vertices, therefore (PrimitivesTotal * 3) = (12 * 3) = 36 primitive vertex indices.
 // After PrimitivesTotal is computed, OurIndices is allocated as an array (OurIndices[FaceElementNo]) of type DWORD using OurIndices = new DWORD[PrimitivesTotal * 3].
-extern DWORD* OurIndices;									// A pointer to the first element in an array of primitive vertex indices, with each element referencing one vertex of OurVertices.
-extern int PrimitivesTotal;
+extern DWORD* OurIndices;									// A pointer to the first array element in an array of primitive vertex indices, with each array element referencing one vertex and its attributes in OurVertices.
+extern int PrimitivesTotal;									// The total number of face elements (triangle primitives) comprising an object.
 
 // End: External Global Variables.
 

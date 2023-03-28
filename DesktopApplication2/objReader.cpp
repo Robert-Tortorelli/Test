@@ -65,21 +65,16 @@ int PrimitivesTotal = 12;                                   // Hard-coded, rathe
 int objReader(void)
 {
 
-	// Allocate and initialize the dynamic arrays of structures, i.e., the external/global variables OurVertices and OurIndices.
+	// Allocate and initialize the dynamic arrays of structures, i.e., the external (and therefore global) variables OurVertices and OurIndices.
 	//
 	// Allocate memory for OurVertices and OurIndices and initialize them. Empty brackets ("{}") initialize them to 0.0f values.
 
 	// OurVertices
 	// In the cube object specified below:
-	// OurVertices has 24 elements, composed of 4 different vertices per each of 6 sides.
+	// OurVertices has 24 array elements, composed of 4 sets of vertex attributes for each of the 6 sides of the cube.
 	// e.g.,
 	//   {-1.0f, -1.0f, 1.0f, XMFLOAT3(0.0f, 0.0f, 1.0f), 0.0f, 0.0f},   // side 1
-	//   {v1,    v2,    v3,            vn1,  vn2,  vn3,   vt1,  vt2 },   // side 1 key. "vx" are vertices; "vnx" are vertex normal vectors; "vtx" are texture coordinates.
-	// There are 6 unique vertex normal vectors, one for each side of the cube. Each vertex normal vector is repeated 4 times per side, and therefore with 4 different vertices per each of 6 sides.
-	//   Each of the 6 sides is composed of 2 unique triangles, for a total of 12 unique triangles represented by 12 face elements in the Wavefront .obj file.
-	//   There are a total of 12 edges in a cube (each line connecting two vertices is one edge).
-	// There are 8 unique vertices, one for each corner of the cube. Each vertex is repeated 3 times per cube, for each of the cube's 3 sided corners, in order to specify the 3 associated vertex normal vectors at each corner.
-	// There are 4 unique texture coordinates, one for each corner of a side (all 6 sides repeat the same texture coordinates).
+	//   {v1,    v2,    v3,            vn1,  vn2,  vn3,   vt1,  vt2 },   // side 1 key: "vx" are geometric vertices; "vnx" are vertex normal vectors; "vtx" are vertex texture coordinates.
 	OurVertices = new VERTEX[GeometricVerticesTotal] {
 		{-1.0f, -1.0f, 1.0f, XMFLOAT3(0.0f, 0.0f, 1.0f), 0.0f, 0.0f},   // side 1
 		{1.0f, -1.0f, 1.0f, XMFLOAT3(0.0f, 0.0f, 1.0f), 0.0f, 1.0f},
@@ -120,9 +115,9 @@ int objReader(void)
 	//OurVertices[0].X = -1.0f;
 	//OurVertices[0].Y = -1.0f;
 	//OurVertices[0].Z = 1.0f;
-	//OurVertices[0].vnX = 0.0f;                            // All "vn*" assignments should be changed to reflect the use of XMFLOAT3.
-	//OurVertices[0].vnY = 0.0f;
-	//OurVertices[0].vnZ = 1.0f;
+	//OurVertices[0].VertexNormal.x = 0.0f;
+	//OurVertices[0].VertexNormal.y = 0.0f;
+	//OurVertices[0].VertexNormal.z = 1.0f;
 
 	OurIndices = new DWORD[PrimitivesTotal * 3]{
 		0, 1, 2,                                                        // side 1

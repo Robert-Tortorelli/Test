@@ -116,12 +116,12 @@ ID3D11ShaderResourceView* pTextureView;						// The pointer to a shader resource
 
 // Declare the C++ constant buffer structure used to assign values to the HLSL constant buffer structure.
 // This structure represents a constant buffer used in the graphics rendering pipeline.
-// It contains information that is passed to the vertex shader stage of the pipeline and can be used to transform vertices and calculate lighting effects on them.
+// It contains information that is passed to the vertex shader stage of the pipeline and can be used to transform geometric vertices and calculate lighting effects on them.
 //
-// The matFinal member is a 4x4 matrix that represents the combined world, view, and projection transformations that are applied to the vertices of the geometry being rendered.
+// The matFinal member is a 4x4 matrix that represents the combined world, view, and projection transformations that are applied to the geometric vertices of the geometry being rendered.
 //
-// The matRotate member is a 4x4 matrix that represents a rotation transformation that is applied to the vertices of the geometry.
-// It is a component of the world transformation, and therefore of the matFinal matrix, but is also included separately in the constant buffer structure because the vertex normal vectors of the vertices also need to be transformed by the same rotation matrix in order to correctly calculate lighting effects.
+// The matRotate member is a 4x4 matrix that represents a rotation transformation that is applied to the geometric vertices of the geometry being rendered.
+// It is a component of the world transformation, and therefore of the matFinal matrix, but is also included separately in the constant buffer structure because the vertex normal vectors at the geometric vertices also need to be transformed by the same rotation matrix in order to correctly calculate lighting effects.
 //
 // The LightVector member is a 4D vector that represents the direction of the light source in 3D space.
 // This vector can be represented by any nonzero vector and the light will shine in that direction.
@@ -152,7 +152,7 @@ struct
 //   WINAPI is a Microsoft Windows data type used to define a function return value. Most functions in the Windows API are declared using WINAPI. It expands to __stdcall.
 int WINAPI WinMain(HINSTANCE hInstance,						// The "handle to an instance" or "handle to a module." The operating system uses this value to identify the executable when it is loaded in memory.
 				   HINSTANCE hPrevInstance,					// This parameter has no meaning. It was used in 16-bit Windows, but is now always zero.
-				   LPSTR lpCmdLine,							// Contains the command-line arguments, excluding the program name, as an ANSI string. To retrieve the entire command line, as a UNICODE string, use the GetCommandLine function.
+				   LPSTR lpCmdLine,							// Contains the command line arguments, excluding the program name, as an ANSI string. To retrieve the entire command line, as a UNICODE string, use the GetCommandLine function.
 				   int nCmdShow)							// Indicates if the main program window will be minimized, maximized, or shown normally.
 {
 	RECT wr;												// The RECT structure contains the coordinates of the top-left and bottom-right corners of the client rectangle (initially) or the window rectangle (after the AdjustWindowRectEx function returns).
@@ -521,7 +521,7 @@ void InitD3D(HWND hWnd)										// The HWND handle for the window.
 	//   This indicates which portion of the back buffer to select pixels from.
 	//   A viewport specifies a 2D rectangle into which a 3D scene is projected.
 	//   In Direct3D, this rectangle exists as coordinates within a Direct3D surface that the system uses as a rendering target.
-	//   The projection transformation converts vertices into the coordinate system used for the viewport.
+	//   The projection transformation converts geometric vertices into the coordinate system used for the viewport.
 	//   A viewport is also used to specify the range of depth values on a render target surface into which a scene will be rendered (usually 0.0 to 1.0).
 	devcon->RSSetViewports(1,								// Number of viewports to bind.
 		&viewport);											// The address "&viewport" of (and therefore a pointer to) an array that, in this program, will be a one element array of D3D11_VIEWPORT structures to bind to the device.
@@ -552,8 +552,8 @@ void InitPipeline(void)
 	//    Their specialty is very fast floating-point mathematical operations. The most common shader programs are:
 	//    Vertex shader:
 	//      This shader is executed for each vertex in the scene.
-	//      This shader operates on vertex buffer elements provided to it by the calling program (this program) and at a minimum returns a 4-component position vector that will be rasterized into a pixel position.
-	//      Optionally, this shader can output vertex texture coordinates, vertex color, vertex lighting, fog factors, and other characteristics of a single vertex.
+	//      This shader operates on vertex buffer array elements provided to it by the calling program (this program) and at a minimum returns a 4-component position vector that will be rasterized into a pixel position.
+	//      Optionally, this shader can output vertex texture coordinates, vertex color, vertex lighting, fog factors, and other attributes of a single vertex.
 	//    Pixel shader:
 	//      This shader is also known as a fragment shader.
 	//      This shader is executed for each pixel (fragment) in the render target.
@@ -617,7 +617,7 @@ void InitPipeline(void)
 
 	//***
 	// 2. Create the input-layout object and set it to the input-assembler stage of the graphics pipeline.
-	//    The input-layout object describes the VERTEX structure representing the vertex elements of each vertex of an object, i.e., the input buffers that will be read by the input-assembler stage of the graphics pipeline.
+	//    The input-layout object describes the VERTEX structure representing the attributes of each vertex of an object, i.e., the input buffers that will be read by the input-assembler stage of the graphics pipeline.
 	//***
 
 	// Create the input element description structure used to define the input-layout object that describes the VERTEX structure used in this program.
@@ -671,7 +671,7 @@ void InitPipeline(void)
 	//		Multiple constant buffers can be created (see below) and each can be set to the vertex shader and/or pixel shader stage of the graphics pipeline, depending on how it will be used.
 	//      Constant buffers are optimized for constant variable usage, which is characterized by lower-latency access and more frequent update from the CPU.
 	//      Constant buffers are used to store data that is shared by all shaders in the graphics pipeline.
-	//      The constant buffer resource must be a multiple of 16 bytes, because constants are sent to the GPU in packs of 16 bytes, regardless of the size of the C++ constant buffer structure.
+	//      The size of the constant buffer resource must be a multiple of 16 bytes, because constants are sent to the GPU in packs of 16 bytes, regardless of the size of the C++ constant buffer structure.
 	//      A constant buffer can be a structure containing multiple constants. The order and size of these structure's members must match in both C++ and HLSL.
 	//      Any one constant (structure member) cannot be split between two 16-byte areas of memory. Therefore, if the first constant in the structure is less than 16 bytes then the second constant will be aligned on the next 16-byte boundary. When it occurs, this automatic alignment must be accounted for in the C++ constant buffer structure in C++, otherwise it will not match the HLSL constant buffer structure, even if their code looks identical.
 	//
@@ -706,7 +706,7 @@ void InitPipeline(void)
 	ZeroMemory(&bd, sizeof(D3D11_BUFFER_DESC));				// ZeroMemory macro: Fills a block of memory with zeros.
 
 	// Assign values to the buffer resource description D3D11_BUFFER_DESC structure's members. Any subordinate members (variable.member.subordinatemember) are described in the comments.
-	bd.ByteWidth = sizeof(ConstantBuffer);					// Assigned a value specifying the size of the buffer in bytes. See the preceding comments for related information, including limitations.
+	bd.ByteWidth = sizeof(ConstantBuffer);					// Assigned a value specifying the size of the buffer in bytes. See the preceding comments for related information on the size of the constant buffer resource, including limitations.
 	bd.Usage = D3D11_USAGE_DEFAULT;							// Assigned a value that identifies how the buffer is expected to be read from and written to. Frequency of update is a key factor. A value of the D3D11_USAGE enumerated type,		i.e., D3D11_USAGE_DEFAULT:		  A resource that requires read and write access by the GPU. This is likely to be the most common usage choice.
 	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;				// Assigned values in any combination by a bitwise OR operation specifying the flags for binding to graphics pipeline stages.		A value of the D3D11_BIND_FLAG enumerated type,	i.e., D3D11_BIND_CONSTANT_BUFFER: Bind a buffer as a constant buffer to a shader stage of the graphics pipeline; this flag may NOT be combined with any other bind flag.
 
@@ -776,7 +776,7 @@ void InitGraphics(void)
 		NULL,												// A pointer to a D3D11_SUBRESOURCE_DATA structure that describes the initialization data; use NULL to allocate space only (with the exception that it cannot be NULL if bd.Usage is D3D11_USAGE_IMMUTABLE).
 		&pVBuffer);											// &pVBuffer is the address of a pointer, pVBuffer, to the buffer interface for the buffer object created, in this case the vertex buffer object.
 
-	// Assign the vertex information by copying it from OurVertices to the vertex buffer.
+	// Assign the vertex attributes by copying them from OurVertices to the vertex buffer.
 	// ID3D11DeviceContext::Map member function:
 	//   Mapping a buffer allows us to access it.
 	//   Gets a pointer to the data contained in a subresource, and denies the GPU access to that subresource.
@@ -786,7 +786,7 @@ void InitGraphics(void)
 		D3D11_MAP_WRITE_DISCARD,							// Flag that specifies the CPU's read and write permissions for a resource. A value of the D3D11_MAP enumerated type, i.e., D3D11_MAP_WRITE_DISCARD: Resource is mapped for writing; the previous contents of the resource will be undefined. The resource must have been created with write access and dynamic usage. "Previous contents of buffer are erased, and new buffer is opened for writing" DirectxTutorial.com.
 		NULL,												// Flag that specifies how the CPU should respond when an application calls the ID3D11DeviceContext::Map method on a resource that is being used by the GPU. A value of the D3D11_MAP_FLAG enumerated type. "D3D11_MAP_FLAG_DO_NOT_WAIT cannot be used with D3D11_MAP_WRITE_DISCARD or D3D11_MAP_WRITE_NOOVERWRITE" Microsoft.com. "It can be NULL or D3D11_MAP_FLAG_DO_NOT_WAIT. This flag forces the program to continue, even if the GPU is still working with the buffer" DirectxTutorial.com.
 		&ms);												// A pointer to the mapped subresource D3D11_MAPPED_SUBRESOURCE structure for the mapped subresource. The Map member function initializes this structure with necessary information.
-	memcpy(ms.pData, &OurVertices[0], bd.ByteWidth);		// Copy the vertex information from OurVertices to the vertex buffer.
+	memcpy(ms.pData, &OurVertices[0], bd.ByteWidth);		// Copy the vertex attributes from OurVertices to the vertex buffer.
 	// D3D11DeviceContext::Unmap member function:
 	//   Invalidate the pointer to a resource and re-enable the GPU's access to that resource. Disable the CPU's access to that resource.
 	devcon->Unmap(pVBuffer,									// A pointer to the vertex buffer interface.
@@ -799,7 +799,7 @@ void InitGraphics(void)
 	//***
 
 	// Assign values to the buffer resource description D3D11_BUFFER_DESC structure's members. Any subordinate members (variable.member.subordinatemember) are described in the comments.
-	bd.ByteWidth = sizeof(DWORD) * (PrimitivesTotal * 3);	// Assigned a value specifying the size of the buffer in bytes. The index buffer resource's size is the size of a DWORD structure * (PrimitivesTotal * 3). Three vertex indices (each pointing to a vertex in the vertex buffer) describe each triangle primitive, and PrimitivesTotal is the number of triangles comprising the object. Therefore PrimitivesTotal * 3.
+	bd.ByteWidth = sizeof(DWORD) * (PrimitivesTotal * 3);	// Assigned a value specifying the size of the buffer in bytes. Three geometric vertex indices (each pointing to a vertex in the vertex buffer) describe each triangle primitive, and PrimitivesTotal is the total number of triangles comprising the object. Therefore PrimitivesTotal * 3.
 	bd.Usage = D3D11_USAGE_DYNAMIC;							// Assigned a value that identifies how the buffer is expected to be read from and written to. Frequency of update is a key factor.	A value of the D3D11_USAGE enumerated type,			  i.e., D3D11_USAGE_DYNAMIC:	 A resource that is accessible by both the GPU (read only) and the CPU (write only). A dynamic resource is a good choice for a resource that will be updated by the CPU at least once per frame. To update a dynamic resource, use a Map member function.
 	bd.BindFlags = D3D11_BIND_INDEX_BUFFER;					// Assigned values in any combination by a bitwise OR operation specifying the flags for binding to graphics pipeline stages.		A value of the D3D11_BIND_FLAG enumerated type,		  i.e., D3D11_BIND_INDEX_BUFFER: Bind a buffer as an index buffer to the input-assembler stage of the graphics pipeline.
 	bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;				// Assigned values in any combination by a bitwise OR operation specifying the flags for binding to graphics pipeline stages.		A value of the D3D11_CPU_ACCESS_FLAG enumerated type, i.e., D3D11_CPU_ACCESS_WRITE:	 The resource is to be mappable so that the CPU can change its contents. Resources created with this flag cannot be set as outputs of the graphics pipeline and must be created with either dynamic or staging usage (see D3D11_USAGE).
@@ -864,12 +864,12 @@ void InitGraphics(void)
 void RenderFrame(void)
 {
 	//***
-	// 1. Define the final transformation matrix, matFinal, which contains all the information necessary to transform each vertex of the object being rendered.
+	// 1. Define the final transformation matrix, matFinal, which contains all the information necessary to transform each geometric vertex of the object being rendered.
 	//    The final matrix, matFinal = matWorld x matView x matProjection
 	//
 	//   i.	Define the world matrix, matWorld.
 	//		What is the purpose of the world transformation?
-	//		A model-to-world transformation, colloquially called a world transformation (or model transformation), converts model vertices to world coordinates.
+	//		A model-to-world transformation, colloquially called a world transformation (or model transformation), converts model geometric vertices to world coordinates.
 	//		In other words, it places a model in a world at an exact point defined by coordinates, and involves:
 	//		1. Translation (movement)
 	//		   It's defined by a single matrix (matTranslate), using a single DirectX function (XMMatrixTranslation).
@@ -885,7 +885,7 @@ void RenderFrame(void)
 	//
 	//  ii.	Define the view matrix, matView.
 	//		What is the purpose of the view transformation?
-	//		The view transformation converts model vertices to view coordinates.
+	//		The view transformation converts model geometric vertices to view coordinates.
 	//		View transformation can be considered similar to setting up a virtual camera, and involves:
 	//		1. Position of the camera
 	//		2. Location the camera is looking at
@@ -896,10 +896,10 @@ void RenderFrame(void)
 	//
 	// iii. Define the projection matrix, matProjection.
 	//		What is the purpose of the projection transformation?
-	//		The projection transformation converts model vertices to screen coordinates.
+	//		The projection transformation converts model geometric vertices to screen coordinates.
 	//		Projection transformation can be considered similar to setting up a camera lens, and involves:
 	//		1. Field of View
-	//		   In 3D graphics, the field of view is defined by setting the amount of radians allowed (vertically). The normal amount for this is 0.78539 (which is pi/4 radians, or 45 degrees).
+	//		   In 3D graphics, the field of view is defined by setting the amount of radians allowed (vertically). The standard amount for this is 0.78539 (which is pi/4 radians, or 45 degrees).
 	//		2. View-Plane Clipping
 	//		   View-plane clipping omits the parts of an image that are unnecessary to draw; e.g., parts too far to see because of fog or the horizon.
 	//		   Direct3D asks for a near view-plane and a far view-plane, and only draws the graphics that are between them; i.e., in the viewing frustum.
@@ -908,7 +908,7 @@ void RenderFrame(void)
 	//
 	//  iv.	Define the final transformation matrix, matFinal.
 	//		matFinal = matWorld x matView x matProjection
-	//		Each vertex is multiplied by the final transformation matrix.
+	//		Each geometric vertex is multiplied by the final transformation matrix.
 	//		The final transformation matrix is one member of the C++ constant buffer structure that matches the HLSL constant buffer structure. The C++ constant buffer structure will be copied to the HLSL constant buffer structure (they are, but do not have to be, named the same).
 	//		Using the HLSL constant buffer is efficient, as multiplication and other common operations can be performed on its members by the GPU's vertex shader.
 	//***
@@ -960,7 +960,7 @@ void RenderFrame(void)
 	// Define the final transformation matrix, matFinal.
 	ConstantBuffer.matFinal = matWorld * matView * matProjection;
 
-	// End: 1. Define the final transformation matrix, matFinal, which contains all the information necessary to transform each vertex of the object being rendered.
+	// End: 1. Define the final transformation matrix, matFinal, which contains all the information necessary to transform each geometric vertex of the object being rendered.
 
 	//***
 	// 2. Assign values that determine the attributes of light.
@@ -1073,7 +1073,7 @@ void RenderFrame(void)
 	// Draw the first instance of the object using the updated constant buffer.
 	// ID3D11DeviceContext::DrawIndexed member function:
 	//   Draw indexed, non-instanced primitives.
-	devcon->DrawIndexed(PrimitivesTotal * 3,				// Number of indices to draw. Three vertex indices (each pointing to a vertex in the vertex buffer) describe each triangle primitive, and PrimitivesTotal is the total number of triangles comprising the object. Therefore PrimitivesTotal * 3.
+	devcon->DrawIndexed(PrimitivesTotal * 3,				// Number of indices to draw. Three geometric vertex indices (each pointing to a vertex in the vertex buffer) describe each triangle primitive, and PrimitivesTotal is the total number of triangles comprising the object. Therefore PrimitivesTotal * 3.
 		0,													// The location of the first index read by the GPU from the index buffer.
 		0);													// A value added to each index before reading a vertex from the vertex buffer.
 	
@@ -1104,7 +1104,7 @@ void RenderFrame(void)
 		0);													// The size of one depth slice of source data.
 	//
 	// Draw the second instance of the object using the updated constant buffer.
-	devcon->DrawIndexed(PrimitivesTotal * 3,				// Number of indices to draw. Three vertex indices (each pointing to a vertex in the vertex buffer) describe each triangle primitive, and PrimitivesTotal is the total number of triangles comprising the object. Therefore PrimitivesTotal * 3.
+	devcon->DrawIndexed(PrimitivesTotal * 3,				// Number of indices to draw. Three geometric vertex indices (each pointing to a vertex in the vertex buffer) describe each triangle primitive, and PrimitivesTotal is the total number of triangles comprising the object. Therefore PrimitivesTotal * 3.
 		0,													// The location of the first index read by the GPU from the index buffer.
 		0);													// A value added to each index before reading a vertex from the vertex buffer.
 

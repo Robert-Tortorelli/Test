@@ -39,7 +39,7 @@
 //
 // HLSL variables may be larger than the corresponding C++ variables used to indirectly (by way of the vertex buffer) assign them data.
 // For example, a HLSL float4 variable, such as "position3D" in "float4 position3D : POSITION;" is assigned values from the vertex buffer, that were originally copied to the vertex buffer (using C++), from the smaller C++ variable OurVertices.
-// OurVertices only specifies three floats for vertex position, and they are assigned to the first three floats of "position3D", leaving the last float of "position3D" undefined.
+// OurVertices only specifies three floats for geometric vertex position, and they are assigned to the first three floats of "position3D", leaving the last float of "position3D" undefined.
 
 // Declare the constant buffer.
 // Note this is defined using the type cbuffer, not the type struct.
@@ -81,7 +81,7 @@ SamplerState ss;											// A SamplerState sampler type.
 // A vertex shader function executes once for each vertex, e.g., for a single triangle, it is called by the graphics driver three times, once per vertex.
 // A vertex shader function always operates on a single input vertex and produces a single output vertex.
 // A vertex shader function may return multiple variables. In such case it returns a struct, e.g., structure VOut with its member variables, and consequently it specifies the associated semantics in that struct's definition.
-// A vertex shader function must return the vertex's 2D position. Vertex color, vertex lighting, vertex texture coordinates, fog factors, and other characteristics of a single vertex, are optional.
+// A vertex shader function must return the geometric vertex's 2D position. Vertex color, vertex lighting, vertex texture coordinates, fog factors, and other characteristics of a single vertex, are optional.
 //
 // The number of times a vertex shader function has been executed can be queried from the CPU using the VSInvocations pipeline statistic.
 // 
@@ -97,7 +97,7 @@ VOut VShader(float4 position3D : POSITION, float4 normal : NORMAL, float2 texcoo
 {
 	VOut output;
 
-	// Calculate the vertex's 2D position (screen position) from its 3D position.
+	// Calculate the geometric vertex's 2D position (screen position) from its 3D position.
 	output.position2D = mul(matFinal, position3D);						// output.position2D with semantic SV_POSITION = f(constant buffer's matFinal, VShader parameter position3D with semantic POSITION)
 
 	// Calculate changes in color based on the level of light.
