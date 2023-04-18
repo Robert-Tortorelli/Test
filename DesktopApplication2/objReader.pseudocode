@@ -1,0 +1,98 @@
+// Vertex attributes must be listed first in the .obj file, so that the face elements can refer to them by number, using the order in which they occur in the file.
+// This is a requirement of the Wavefront .obj file format.
+//
+// Initialize array indices to start at 0.
+v# = -1 // Geometric vertices index (v[v#]), a vertex attribute index.
+vt# = -1 // Vertex texture coordinates index (vt[vt#]), a vertex attribute index.
+vn# = -1 // Vertex normal vectors index (vn[vn#]), a vertex attribute index.
+triplet# = -1 // Face element "triplet" index (OurIndices[triplet#]) (per each face element triplet (v/vt/vn))
+s# = -1 // Set of vertex attributes index (OurVertices[s#]).
+While Read statement From file != EOF {
+	If statement = "#" Then { // Comment statement.
+		Continue // Ignored comments.
+		}
+	// Store all vertex attributes of a given type (v or vt or vn) in its own intermediate array, i.e., v[] or vt[] or vn[].
+	If statement = "v " Then { // Geometric vertices are temporarily stored in v, an intermediate array.
+		v# = v# + 1
+		v[v#].X = StringtoFloat(Substring(statement, "v ", " "))
+		v[v#].Y = StringtoFloat(Substring(statement, " ", " "))
+		v[v#].Z = StringtoFloat(Substring(statement, " ", /EOL))
+		Continue
+		}
+
+	If statement = "vt" Then { // Vertex texture coordinates are temporarily stored in vt, an intermediate array.
+		vt# = vt# + 1
+		vt[vt#].U = StringtoFloat(Substring(statement, "vt ", " "))
+		vt[vt#].V = StringtoFloat(Substring(statement, " ", /EOL))
+		Continue
+		}
+
+	If statement = "vn" Then { // Vertex normal vectors are temporarily stored in vn, an intermediate array.
+		vn# = vn# + 1
+		vn[vn#].x = StringtoFloat(Substring(statement, "vn ", " "))
+		vn[vn#].y = StringtoFloat(Substring(statement, " ", " "))
+		vn[vn#].z = StringtoFloat(Substring(statement, " ", /EOL))
+		Continue
+		}
+
+	// Process face elements.
+	// All vertex attributes must be listed first in the .obj file, and will therefore be processed before any face element.
+	If statement = "f " Then {
+		For i = 1 to 3 {
+			// Process each of the three triplets (v/vt/vn) in the current face element:
+			// v#, vt#, and vn# are here extracted from face element triplets (v/vt/vn).
+			triplet# = triplet# + 1 // Update triplet#, the OurIndices array index (OurIndices[triplet#]).
+			s# = s# + 1 // Update s#, the OurVertices array index (OurVertices[s#]).
+
+			If i = 1 Then {
+				// Extract face element indices from the next triplet (v/vt/vn) in the current face element, adjusted by -1 as per the conversion from .obj to DirectX.
+				// i = 1: Process the first triplet (v/vt/vn) in the current face element:
+				v# = StringtoFloat(Substring(statement, "f ", "/")) -1
+				vt# = StringtoFloat(Substring(statement, "/", "/")) -1
+				vn# = StringtoFloat(Substring(statement, "/", " ")) -1
+			}
+
+			If i = 2 Then {
+				// i = 2: Process the second triplet (v/vt/vn) in the current face element:
+				v# = StringtoFloat(Substring(statement, " ", "/")) -1
+				vt# = StringtoFloat(Substring(statement, "/", "/")) -1
+				vn# = StringtoFloat(Substring(statement, "/", " ")) -1
+			}
+
+			If i = 3 Then {
+				// i = 3: Process the third triplet (v/vt/vn) in the current face element:
+				v# = StringtoFloat(Substring(statement, " ", "/")) -1
+				vt# = StringtoFloat(Substring(statement, "/", "/")) -1
+				vn# = StringtoFloat(Substring(statement, "/", /EOL)) -1
+			}
+
+			// Copy the set of vertex attributes from their intermediate arrays to a new candidate OurVertices array element.
+			OurVertices[s#].X = v[v#].X
+			OurVertices[s#].Y = v[v#].Y
+			OurVertices[s#].Z = v[v#].Z
+			OurVertices[s#].VertexNormal.x = vn[vn#].x
+			OurVertices[s#].VertexNormal.y = vn[vn#].y
+			OurVertices[s#].VertexNormal.z = vn[vn#].z
+			OurVertices[s#].U = vt[vt#].U
+			OurVertices[s#].V = vt[vt#].V
+
+			// Check whether the new OurVertices array element is unique.
+			If (OurVertices[s#] already exists in OurVertices[] at [Index]) Then {
+				// The new OurVertices[s#] array element is nonunique (it already exists at OurVertices[Index]) and must be deleted.
+				
+				// Set OurIndices[triplet#] to reference the existing OurVertices array element OurVertices[Index].
+				OurIndices[triplet#] = Index // OurVertices[OurIndices[triplet#]] --> OurVertices[Index]
+				
+				// Delete the nonunique OurVertices array element.
+				OurVertices[s#] = NULL
+				s# = s# - 1
+
+				} Else {
+					// The new OurVertices[s#] array element is unique and will be used.
+					// Set OurIndices[triplet#] to reference the new OurVertices array element OurVertices[s#].
+					OurIndices[triplet#] = s# // OurVertices[OurIndices[triplet#]] --> OurVertices[s#]
+					}
+				}
+			}
+		}
+	}
