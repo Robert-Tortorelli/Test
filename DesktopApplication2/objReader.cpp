@@ -119,7 +119,7 @@ int objReader(void)
 	//OurVertices[0].VertexNormal.y = 0.0f;
 	//OurVertices[0].VertexNormal.z = 1.0f;
 
-	OurIndices = new DWORD[PrimitivesTotal * 3]{
+	OurIndices = new DWORD[PrimitivesTotal * 3] {
 		0, 1, 2,                                                        // side 1
 		2, 1, 3,
 		4, 5, 6,                                                        // side 2

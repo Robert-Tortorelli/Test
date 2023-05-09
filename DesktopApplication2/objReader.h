@@ -38,8 +38,7 @@ int objReader(void);
 //***
 // If the VERTEX structure is changed then the input element description structure (defined in objRenderer.cpp) must be changed accordingly.
 
-struct VERTEX
-{
+struct VERTEX {
 	float X, Y, Z;											// Geometric vertex.		  ("v"	element in the Wavefront .obj file)
 	DirectX::XMFLOAT3 VertexNormal;							// Vertex normal vector.	  ("vn" element in the Wavefront .obj file)
 	float U, V;												// Vertex texture coordinate. ("vt" element in the Wavefront .obj file)

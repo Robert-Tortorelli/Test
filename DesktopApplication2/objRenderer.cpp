@@ -132,8 +132,7 @@ ID3D11ShaderResourceView* pTextureView;						// The pointer to a shader resource
 // The AmbientColor member is a 4D vector that represents the color and brightness of the ambient light in the scene.
 // Ambient light is a type of light that illuminates all objects in a scene equally, regardless of their distance from the light source.
 // It is used to add a basic level of illumination to a scene and can be used to simulate global illumination effects.
-struct
-{
+struct {
 	XMMATRIX matFinal;
 	XMMATRIX matRotate;										// Vertex normal vectors, like the geometric vertices comprising the object, also need to be transformed by the rotation matrix to correctly calculate lighting effects.
 	XMFLOAT4 LightVector;									// Directional light's direction.
@@ -299,18 +298,18 @@ LRESULT CALLBACK WindowProc(HWND hWnd,						// The HWND handle for the window.
 	switch(message)
 	{
 		case WM_DESTROY:
-			{
-				// WM_DESTROY message: (message = WM_DESTROY)
-				//   It is sent to the thread message queue of the window being destroyed after the window is removed from the screen.
-				//     This message is sent first for the window being destroyed and then for child windows (if any) as they are destroyed. During the processing of the message, it can be assumed that all child windows still exist.
-				// PostQuitMessage function:
-				//   Indicates to the operating system that a thread has made a request to terminate (quit). It is typically called in response to a WM_DESTROY message.
-				//   Posts a new WM_QUIT message (message = WM_QUIT) to the thread message queue and returns immediately, indicating to the operating system that the thread is requesting to quit at some time in the future.
-				//     The exit value returned to the operating system must be the wParam parameter value of the WM_QUIT message (here wParam = 0).
-				// When the thread retrieves the WM_QUIT message from its message queue, it should exit its message loop and return the exit value, and control, to the operating system.
-				PostQuitMessage(0);							// PostQuitMessage(x), where x is the wParam parameter value of the WM_QUIT message (here wParam = 0).
-				return 0;									// The WindowProc function returns 0.
-			} break;										// Break out of the switch block.
+		{
+			// WM_DESTROY message: (message = WM_DESTROY)
+			//   It is sent to the thread message queue of the window being destroyed after the window is removed from the screen.
+			//     This message is sent first for the window being destroyed and then for child windows (if any) as they are destroyed. During the processing of the message, it can be assumed that all child windows still exist.
+			// PostQuitMessage function:
+			//   Indicates to the operating system that a thread has made a request to terminate (quit). It is typically called in response to a WM_DESTROY message.
+			//   Posts a new WM_QUIT message (message = WM_QUIT) to the thread message queue and returns immediately, indicating to the operating system that the thread is requesting to quit at some time in the future.
+			//     The exit value returned to the operating system must be the wParam parameter value of the WM_QUIT message (here wParam = 0).
+			// When the thread retrieves the WM_QUIT message from its message queue, it should exit its message loop and return the exit value, and control, to the operating system.
+			PostQuitMessage(0);							// PostQuitMessage(x), where x is the wParam parameter value of the WM_QUIT message (here wParam = 0).
+			return 0;									// The WindowProc function returns 0.
+		} break;										// Break out of the switch block.
 	}
 
 	// Handle messages the switch block does not:
@@ -363,8 +362,7 @@ void InitD3D(HWND hWnd)										// The HWND handle for the window.
 	scd.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;		// Assigned a value that describes options for swap-chain behavior.															A value of the DXGI_SWAP_CHAIN_FLAG enumerated type, i.e., DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH: Enable an application to switch modes by calling IDXGISwapChain::ResizeTarget. When switching from windowed to full screen mode, the display mode (or monitor resolution) will be changed to match the dimensions of the application window. This allows switching to full screen via Alt-Enter.
 
 	// Create the Direct3D feature level enumeration used to describe the set of features targeted by the Direct3D device.
-	D3D_FEATURE_LEVEL pFeatureLevelsIn[] =					// A pointer to an array of members selected from the enumerator-list defined in the D3D_FEATURE_LEVEL enumerated type.
-	{
+	D3D_FEATURE_LEVEL pFeatureLevelsIn[] = {				// A pointer to an array of members selected from the enumerator-list defined in the D3D_FEATURE_LEVEL enumerated type.
 		D3D_FEATURE_LEVEL_11_1,
 		D3D_FEATURE_LEVEL_11_0,
 		D3D_FEATURE_LEVEL_10_1,
