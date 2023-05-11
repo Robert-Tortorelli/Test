@@ -59,10 +59,10 @@ While Read statement From file != EOF
 
 	If statement's first non-blank character = "f " Then // All vertex attributes in the Wavefront .obj file have been processed. Process the next face element and assign values to OurVertices, the vertex attribute array, and OurIndices, the vertex attribute index array.
 	{
-		For i = 1 to 3 // Process each of the three triplets (v/vt/vn) in the current face element (f v1/vt1/vn1 v2/vt2/vn2 v3/vt3/vn3) by extracting face element indices, adjusted by -1. (Adapting the  Wavefront .obj file format to DirectX)
+		For i = 1 to 3 // Process each of the three triplets (v/vt/vn) in the current face element (f v1/vt1/vn1 v2/vt2/vn2 v3/vt3/vn3) by extracting face element indices, adjusted by -1. (Adapting the Wavefront .obj file format to DirectX)
 		{
 			s# = s# + 1					  // Update s# array index (OurVertices[s#])
-			triplet# = NewValuetriplet#(triplet#) // Update triplet# array index (OurIndices[triplet#]). NewValuetriplet#() generates triplet# in the sequence 0, 2, 1, 3, 5, 4, etc. See below, 'Converting the drawing order from counter-clockwise (Wavefront .obj file) to clockwise (DirectX)'.
+			triplet# = NewValuetriplet#(triplet#) // Update triplet# array index (OurIndices[triplet#]). NewValuetriplet#() generates triplet# in the sequence 0, 2, 1, 3, 5, 4, etc. See the function's definition below. (Adapting the Wavefront .obj file format to DirectX)
 
 			If i = 1 Then
 			{
@@ -91,12 +91,12 @@ While Read statement From file != EOF
 			// Copy the set of vertex attributes from their intermediate arrays to a new candidate OurVertices array element.
 			OurVertices[s#].X = v[v#].X
 			OurVertices[s#].Y = v[v#].Y
-			OurVertices[s#].Z = v[v#].Z * -1.0f				   // Invert the geometric vertex's Z coordinate.		   (Adapting the  Wavefront .obj file format to DirectX)
+			OurVertices[s#].Z = v[v#].Z * -1.0f				   // Invert the geometric vertex's Z coordinate.		   (Adapting the Wavefront .obj file format to DirectX)
 			OurVertices[s#].VertexNormal.x = vn[vn#].x
 			OurVertices[s#].VertexNormal.y = vn[vn#].y
-			OurVertices[s#].VertexNormal.z = vn[vn#].z * -1.0f // Invert the vertex normal vector's Z coordinate.	   (Adapting the  Wavefront .obj file format to DirectX)
+			OurVertices[s#].VertexNormal.z = vn[vn#].z * -1.0f // Invert the vertex normal vector's Z coordinate.	   (Adapting the Wavefront .obj file format to DirectX)
 			OurVertices[s#].U = vt[vt#].U
-			OurVertices[s#].V = 1.0f - vt[vt#].V			   // Invert the vertex texture coordinate's V coordinate. (Adapting the  Wavefront .obj file format to DirectX)
+			OurVertices[s#].V = 1.0f - vt[vt#].V			   // Invert the vertex texture coordinate's V coordinate. (Adapting the Wavefront .obj file format to DirectX)
 
 			// Check whether the new OurVertices array element is unique.
 			If (OurVertices[s#] already exists in OurVertices[] at [Index]) Then
@@ -122,6 +122,7 @@ While Read statement From file != EOF
 }
 
 NewValuetriplet#(x)
+// Converting the drawing order from counter-clockwise (Wavefront .obj file) to clockwise (DirectX): Reversing the order of face element geometric vertex indices. (Adapting the Wavefront .obj file format to DirectX)
 {
 	If (i = 1) Then
 	{
@@ -131,16 +132,8 @@ NewValuetriplet#(x)
 			i = 1
 		}
 	Return x = x + i, // Increment the parameter by i and return this value to the caller.
-}
-
-*HERE* Write the NewValuetriplet#() function
-NewValuetriplet#() Function:
-	x = 0 (initial value)
-	x = NewValuetriplet#(x) :: x = x + i, where i alternates between 2 and 1.
-
 	/*
-	Converting the drawing order from counter-clockwise (Wavefront .obj file) to clockwise (DirectX): Reversing the order of face element geometric vertex indices. (Adapting the  Wavefront .obj file format to DirectX)
-	This program calls a NewValuetriplet#() function described below to reverse the order of vertices by generating triplet# in the sequence 0, 2, 1 etc.
+	The calling program program calls the NewValuetriplet#() function to reverse the order of vertices by generating triplet# in the sequence 0, 2, 1 etc.
 	This is preferable to rewriting OurIndices in reverse order after it is initially computed.
 	OurIndices cannot be written in full reverse order from the start, because I do not have a count of the total number of face element triplets until I'm done processing the Wavefront .obj file, 
 	and I do not want to "pre-read" the Wavefront .obj file to calculate this count, as this would mean reading the entire file twice.
@@ -165,3 +158,4 @@ NewValuetriplet#() Function:
 	In this case you're keeping the starting point of each triangle, the first index, and then moving in the opposite direction.
 	This method was first seen at https://msdn.microsoft.com/en-us/library/windows/desktop/bb204853(v=vs.85).aspx.
 	*/
+}
