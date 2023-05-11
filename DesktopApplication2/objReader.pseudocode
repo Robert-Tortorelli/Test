@@ -1,3 +1,12 @@
+// objReader Pseudo Code
+// Version 3.1
+//
+// Description
+// This function parses a Wavefront .obj file for a single 3D object's descriptive information and assigns it to the external global variables used by the calling program when rendering the object.
+//
+// Authorship
+// Robert John Tortorelli
+
 // Wavefront .obj file format requirements:
 // - Vertex attributes must be listed first in a Wavefront .obj file, and will therefore be processed before any face elements, so that the face elements can refer to vertex attributes by number, using the order in which they occur in the file.
 // - No spaces are permitted before or after a slash ('/').
@@ -14,6 +23,7 @@ vn[], vn# = -1	// Vertex normal vectors intermediate array and index (vn[vn#]).
 // Final arrays used to initilaize DirectX data structures.
 OurVertices[], s# = -1		// Vertex attribute array and index			(OurVertices[s#]).		Used to initilaize the DirectX vertex buffer. Each OurVertices[] array element contains one face element "triplet" (v, vn, vt).
 OurIndices[], triplet# = -1	// Vertex attribute index array and index	(OurIndices[triplet#]).	Used to initilaize the DirectX index buffer.  Each OurVertices[] array element is specified as OurVertices[OurIndices[triplet#]].
+i = 1 // The initial value of the increment in the NewValuetriplet#() function.
 While Read statement From file != EOF
 {
 	If statement's first non-blank character = "# " Then // Comment statement.
@@ -52,7 +62,7 @@ While Read statement From file != EOF
 		For i = 1 to 3 // Process each of the three triplets (v/vt/vn) in the current face element (f v1/vt1/vn1 v2/vt2/vn2 v3/vt3/vn3) by extracting face element indices, adjusted by -1. (Adapting the  Wavefront .obj file format to DirectX)
 		{
 			s# = s# + 1					  // Update s# array index (OurVertices[s#])
-			triplet# = NewValuetriplet#() // Update triplet# array index (OurIndices[triplet#]). NewValuetriplet#() generates triplet# in the sequence 0, 2, 1, 3, 5, 4, etc. See below, 'Converting the drawing order from counter-clockwise (Wavefront .obj file) to clockwise (DirectX)'.
+			triplet# = NewValuetriplet#(triplet#) // Update triplet# array index (OurIndices[triplet#]). NewValuetriplet#() generates triplet# in the sequence 0, 2, 1, 3, 5, 4, etc. See below, 'Converting the drawing order from counter-clockwise (Wavefront .obj file) to clockwise (DirectX)'.
 
 			If i = 1 Then
 			{
@@ -111,6 +121,18 @@ While Read statement From file != EOF
 	}
 }
 
+NewValuetriplet#(x)
+{
+	If (i = 1) Then
+	{
+		i = 2 // i is initially 1, therefore the first time this function is called i is set to 2.  i alternates between 2 and 1.
+	}	Else
+		{
+			i = 1
+		}
+	Return x = x + i, // Increment the parameter by i and return this value to the caller.
+}
+
 *HERE* Write the NewValuetriplet#() function
 NewValuetriplet#() Function:
 	x = 0 (initial value)
@@ -127,6 +149,7 @@ NewValuetriplet#() Function:
 	NewValuetriplet#() Function:
 	x = 0 (initial value)
 	x = NewValuetriplet#(x) :: x = x + i, where i alternates between 2 and 1.
+	By default C++ functions pass by value, in which case the return value needs to be assigned to a variable in the scope of the caller.
 	Questions:
 	1. If NewValuetriplet#() is a function then does i have to be static to alternate (if i = 2 then i = 1 else i = 2)?
 	2. If NewValuetriplet#() is not a function (if it is inline) then is i being static immaterial and is this more efficient?
