@@ -30,5 +30,6 @@
   <ItemGroup>
     <None Include="Text.obj" />
     <None Include="packages.config" />
+    <None Include="Text (normals, texture).obj" />
   </ItemGroup>
 </Project>
