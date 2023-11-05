@@ -75,7 +75,7 @@ StyleCopReport.xml
 *_h.h
 *.ilk
 *.meta
-#*.obj // Commented out because of false positives for Wavefront .obj files, which should be managed by source control. (RJT)
+*.obj
 *.iobj
 *.pch
 *.pdb

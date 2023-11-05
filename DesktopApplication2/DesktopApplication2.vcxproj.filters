@@ -28,8 +28,7 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
-    <None Include="Text (normals, texture).obj" />
     <None Include="Text.obj" />
+    <None Include="packages.config" />
   </ItemGroup>
 </Project>
