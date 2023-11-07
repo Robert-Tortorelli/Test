@@ -1,4 +1,3 @@
-//test
 // Shader Functions
 // Version 3.1
 //
