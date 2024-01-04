@@ -34,7 +34,7 @@
 //   2. The terms texture buffer, texture array, and texture interface refer to DirectX programming constructs.
 //      These terms are distinct from the term texture images defined above.
 
-// Wavefront .obj file I/O (objReader function) Header File.
+// Wavefront .obj file I/O Header File.
 // Declare external global variables in this header file, and include it in all source files that reference these external global variables.
 // Includes the DirectXMath Header File.
 #include "objReader.h"
@@ -763,10 +763,10 @@ void InitGraphics(void)
 	//***
 
 	// Assign values to the buffer resource description D3D11_BUFFER_DESC structure's members. Any subordinate members (variable.member.subordinatemember) are described in the comments.
-	bd.ByteWidth = sizeof(VERTEX) * GeometricVerticesTotal;	// Assigned a value specifying the size of the buffer in bytes. The vertex buffer resource's size is the size of the VERTEX structure * the total number of geometric vertices (GeometricVerticesTotal).
-	bd.Usage = D3D11_USAGE_DYNAMIC;							// Assigned a value that identifies how the buffer is expected to be read from and written to. Frequency of update is a key factor.	A value of the D3D11_USAGE enumerated type,			  i.e., D3D11_USAGE_DYNAMIC:	  A resource that is accessible by both the GPU (read only) and the CPU (write only). A dynamic resource is a good choice for a resource that will be updated by the CPU at least once per frame. To update a dynamic resource, use a Map member function.
-	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;				// Assigned values in any combination by a bitwise OR operation specifying the flags for binding to graphics pipeline stages.		A value of the D3D11_BIND_FLAG enumerated type,		  i.e., D3D11_BIND_VERTEX_BUFFER: Bind a buffer as a vertex buffer to the input-assembler stage of the graphics pipeline.
-	bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;				// Assigned values in any combination by a bitwise OR operation specifying the flags for binding to graphics pipeline stages.		A value of the D3D11_CPU_ACCESS_FLAG enumerated type, i.e., D3D11_CPU_ACCESS_WRITE:	  The resource is to be mappable so that the CPU can change its contents. Resources created with this flag cannot be set as outputs of the graphics pipeline and must be created with either dynamic or staging usage (see D3D11_USAGE).
+	bd.ByteWidth = sizeof(VERTEX) * VertexAttributeSetsTotal;	// Assigned a value specifying the size of the buffer in bytes. The vertex buffer resource's size is the size of the VERTEX structure * the total number of array elements in OurVertices (VertexAttributeSetsTotal).
+	bd.Usage = D3D11_USAGE_DYNAMIC;								// Assigned a value that identifies how the buffer is expected to be read from and written to. Frequency of update is a key factor.	A value of the D3D11_USAGE enumerated type,			  i.e., D3D11_USAGE_DYNAMIC:	  A resource that is accessible by both the GPU (read only) and the CPU (write only). A dynamic resource is a good choice for a resource that will be updated by the CPU at least once per frame. To update a dynamic resource, use a Map member function.
+	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;					// Assigned values in any combination by a bitwise OR operation specifying the flags for binding to graphics pipeline stages.		A value of the D3D11_BIND_FLAG enumerated type,		  i.e., D3D11_BIND_VERTEX_BUFFER: Bind a buffer as a vertex buffer to the input-assembler stage of the graphics pipeline.
+	bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;					// Assigned values in any combination by a bitwise OR operation specifying the flags for binding to graphics pipeline stages.		A value of the D3D11_CPU_ACCESS_FLAG enumerated type, i.e., D3D11_CPU_ACCESS_WRITE:	  The resource is to be mappable so that the CPU can change its contents. Resources created with this flag cannot be set as outputs of the graphics pipeline and must be created with either dynamic or staging usage (see D3D11_USAGE).
 
 	// ID3D11Device::CreateBuffer member function:
 	//   Create a buffer object (vertex buffer, index buffer, or shader constant buffer), in this case the vertex buffer object.
@@ -1158,7 +1158,7 @@ void CleanD3D(void)
 	devcon->Release();
 
 	// Deallocate any dynamically allocated objects.
-	// delete Operator: Deallocates the memory block pointed to by a pointer (if not null), releasing the storage space previously allocated to it by a call to operator new (e.g., OurVertices = new VERTEX[GeometricVerticesTotal];), and rendering the pointer location invalid.
+	// delete Operator: Deallocates the memory block pointed to by a pointer (if not null), releasing the storage space previously allocated to it by a call to operator new (e.g., OurVertices = new VERTEX[VertexAttributeSetsTotal];), and rendering the pointer location invalid.
 	delete[] OurVertices;									// Deallocate pointer OurVertices.
 	delete[] OurIndices;									// Deallocate pointer OurIndices.
 

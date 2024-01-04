@@ -361,3 +361,8 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/DesktopApplication2/DesktopApplication2.vcxproj
+/DesktopApplication2/DesktopApplication2.vcxproj.filters
+/DesktopApplication2/BingAI.2.cpp
+/DesktopApplication2/DesktopApplication2.vcxproj
+/DesktopApplication2/DesktopApplication2.vcxproj.filters

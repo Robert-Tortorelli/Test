@@ -16,13 +16,13 @@
 // objRenderer Wavefront .obj file format requirements:
 // - Face elements must specify triangle primitives (i.e., three triplets, one triplet for each of the three vertices in a triangle) with each triplet containing all three vertex attributes (i.e., v/vt/vn), e.g., f v1/vt1/vn1 v2/vt2/vn2 v3/vt3/vn3.
 //
-// Vertex attribute (v or vt or vn) intermediate arrays. Intermediate array indicices are initialized to -1 and become 0 after first being incremented by 1.
+// Vertex attribute (v or vt or vn) intermediate arrays. Intermediate array indices are initialized to -1 and become 0 after first being incremented by 1.
 v[], v# = -1	// Geometric vertices intermediate array and index (v[v#]).
 vt[], vt# = -1	// Vertex texture coordinates intermediate array and index (vt[vt#]).
 vn[], vn# = -1	// Vertex normal vectors intermediate array and index (vn[vn#]).
-// Final arrays used to initilaize DirectX data structures.
-OurVertices[], s# = -1		// Vertex attribute array and index			(OurVertices[s#]).		Used to initilaize the DirectX vertex buffer. Each OurVertices[] array element contains one face element "triplet" (v, vn, vt).
-OurIndices[], triplet# = -1	// Vertex attribute index array and index	(OurIndices[triplet#]).	Used to initilaize the DirectX index buffer.  Each OurVertices[] array element is specified as OurVertices[OurIndices[triplet#]].
+// Final arrays used to initialize DirectX data structures.
+OurVertices[], s# = -1		// Vertex attribute array and index			(OurVertices[s#]).		Used to initialize the DirectX vertex buffer. Each OurVertices[] array element contains one face element "triplet" (v, vn, vt).
+OurIndices[], triplet# = -1	// Vertex attribute index array and index	(OurIndices[triplet#]).	Used to initialize the DirectX index buffer.  Each OurVertices[] array element is specified as OurVertices[OurIndices[triplet#]].
 i = 1 // The initial value of the increment in the NewValuetriplet#() function.
 While Read statement From file != EOF
 {
