@@ -96,13 +96,14 @@ int objReader(void)
 	// Variables used to parse the Wavefront .obj file:
 	// Intermediate arrays are used to temporarily store all vertex attributes before they are copied to the external variables OurVertices and OurIndices, which are used to initialize DirectX data structures.
 	// Each intermediate array is a one-dimensional array of structures, where each array element (each structure) contains vertex attributes of a given type for one vertex.
-	// v[]  is the intermediate array of structures for geometric vertices,			where each structure contains three floating-point values (X, Y, Z).
+	// v[]  is the intermediate array of structures for geometric vertices,			where each structure contains three floating-point values (x, y, z).
 	// vn[] is the intermediate array of structures for vertex normal vectors,		where each structure contains three floating-point values (x, y, z).
 	// vt[] is the intermediate array of structures for vertex texture coordinates, where each structure contains two	floating-point values (x, y; usually named U, V in computer graphics).
 	// Each intermediate array is indexed by a variable, vi, vni, or vti, initialized to -1, that is incremented by 1 each time a new vertex attribute is stored in the intermediate array.
-	std::vector<XMFLOAT3>* v = nullptr; int vi = -1;		// Geometric vertices			dynamic intermediate array and index (v[vi]).
-	std::vector<XMFLOAT3>* vn = nullptr; int vni = -1;		// Vertex normal vectors		dynamic intermediate array and index (vn[vni]).
-	std::vector<XMFLOAT2>* vt = nullptr; int vti = -1;		// Vertex texture coordinates	dynamic intermediate array and index (vt[vti]).
+	// Each intermediate array is dynamically allocated using C++ std::vector, which is a template class that provides dynamic array functionality.
+	std::vector<XMFLOAT3> v; int vi = -1;					// Geometric vertices			dynamic intermediate array and index (v[vi]).
+	std::vector<XMFLOAT3> vn; int vni = -1;					// Vertex normal vectors		dynamic intermediate array and index (vn[vni]).
+	std::vector<XMFLOAT2> vt; int vti = -1;					// Vertex texture coordinates	dynamic intermediate array and index (vt[vti]).
 
 //*HERE3*
 	// Open the Wavefront .obj file for input.
@@ -119,8 +120,7 @@ int objReader(void)
 	while (getline(obj, stringtext))						// Attempt to read an entire statement, from the input file stream object obj, into the string variable "stringtext". At eof "getline" becomes false and the while loop is exited.
 	{
 		// Check whether the statement's first non-blank character is "# ", indicating a comment statement.
-//*HERE4* Consider using stringtext.find("#", 0) to find the first occurrence of "#" in stringtext, starting at position 0. This would allow comments to be placed anywhere in the statement, not just at the beginning. This is what the original version of objReader did.
-		if (stringtext[0] == '#')							// If the statement's first non - blank character is "# " then:
+		if (stringtext.find("#") != string::npos)			// If '#' is found in stringtext then:
 		{
 			// Ignore comments.
 			continue;										// Skip the rest of the while loop and continue with the next iteration of the while loop.
@@ -131,9 +131,9 @@ int objReader(void)
 		{
 			// Process the geometric vertex statement.
 			vi = vi + 1;									// Increment the geometric vertex index.
-			v[vi].X = stof(stringtext.substr(2, 8));		// Convert the first numeric string value to float and store it in v[vi].X.
-			v[vi].Y = stof(stringtext.substr(10, 8));		// Convert the second numeric string value to float and store it in v[vi].Y.
-			v[vi].Z = stof(stringtext.substr(18, 8));		// Convert the third numeric string value to float and store it in v[vi].Z.
+			v[vi].x = stof(stringtext.substr(2, 8));		// Convert the first numeric string value to float and store it in v[vi].X.
+			v[vi].y = stof(stringtext.substr(10, 8));		// Convert the second numeric string value to float and store it in v[vi].Y.
+			v[vi].z = stof(stringtext.substr(18, 8));		// Convert the third numeric string value to float and store it in v[vi].Z.
 			continue;										// Skip the rest of the while loop and continue with the next iteration of the while loop.
 		}
 
