@@ -29,18 +29,35 @@ void readObjFile(const std::string& filename) {
 															// In this case, since type is only used within the loop, it's best to declare it there.
         lineStream >> type;									// The >> operator extracts data from the lineStream object and stores it in the variable type.
 
+/*
+Contrast using std::sscanf(line.c_str(), "v %f %f %f", &vertex.x, &vertex.y, &vertex.z); vs. using lineStream >> vertex.x >> vertex.y >> vertex.z;
+(See ChatGPT.cpp for an example of sscan())
+
+Both `std::sscanf` and `std::istringstream` can be used to parse strings in C++, but they have some differences:
+
+1. **Ease of Use:** `std::istringstream` is generally easier to use and more C++-like. It uses the stream extraction operator (`>>`), which automatically handles whitespace and can be chained to read multiple values. `std::sscanf`, on the other hand, requires a format string and a list of output variables, which can be more error-prone.
+
+2. **Type Safety:** `std::istringstream` is more type-safe than `std::sscanf`. With `std::istringstream`, the compiler will give an error if you try to read a value into a variable of the wrong type. With `std::sscanf`, you could accidentally read a value into a variable of the wrong type and not realize it until runtime.
+
+3. **Performance:** `std::sscanf` can be faster than `std::istringstream` in some cases because it doesn't have the overhead of creating a stream object. However, the difference is usually small and unlikely to be noticeable unless you're parsing a very large amount of data.
+
+4. **Flexibility:** `std::istringstream` is more flexible than `std::sscanf`. With `std::istringstream`, you can easily read values of any type that has an overload for the stream extraction operator. With `std::sscanf`, you're limited to the types and formats supported by the format specifiers.
+
+In your case, both `std::sscanf(line.c_str(), "v %f %f %f", &vertex.x, &vertex.y, &vertex.z);` and `lineStream >> vertex.x >> vertex.y >> vertex.z;` would work, but `lineStream >> vertex.x >> vertex.y >> vertex.z;` is more idiomatic C++, easier to use, and more type-safe.
+*/
+
         if (type == "v") {
             XMFLOAT3 vertex;
             lineStream >> vertex.x >> vertex.y >> vertex.z;	// Equivalent to my v variable.
-            vertices.push_back(vertex);						// Corresponds to populating OurVertices.
+            vertices.push_back(vertex);						// Corresponds to populating my OurVertices variable.
         } else if (type == "vn") {
             XMFLOAT3 normal;
             lineStream >> normal.x >> normal.y >> normal.z;	// Equivalent to my vn variable.
-            normals.push_back(normal);						// Corresponds to populating OurVertices.
+            normals.push_back(normal);						// Corresponds to populating my OurVertices variable.
         } else if (type == "vt") {
             XMFLOAT2 texCoord;
             lineStream >> texCoord.x >> texCoord.y;			// Equivalent to my vt variable.
-            texCoords.push_back(texCoord);					// Corresponds to populating OurVertices.
+            texCoords.push_back(texCoord);					// Corresponds to populating my OurVertices variable.
         } else if (type == "f") {
             // Parse face data here
             // Note: This is a simplified example and assumes that faces are defined as "f v1/vt1/vn1 v2/vt2/vn2 v3/vt3/vn3"
