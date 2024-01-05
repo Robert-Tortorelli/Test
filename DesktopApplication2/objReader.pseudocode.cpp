@@ -136,8 +136,8 @@ int objReader(void)
 			v[vi].z = stof(stringtext.substr(18, 8));		// Convert the third numeric string value to float and store it in v[vi].Z.
 			continue;										// Skip the rest of the while loop and continue with the next iteration of the while loop.
 		}
-
-
+	}
+}
 /*
 		If statement's first non-blank character = "vt" Then // Vertex texture coordinates are temporarily stored in vt[], an intermediate array.
 		{
