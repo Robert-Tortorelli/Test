@@ -53,15 +53,12 @@ using namespace DirectX;                                    // Used with the Dir
 // External Variable Global Definitions.
 //***
 
-//*HERE1* VertexAttributeSetsTotal and PrimitivesTotal, if kept and used, need to be assigned applicable values.
 // Define external variables in one and only one source file (this one) and initialize them as needed.
 // See the associated header file for declarations and descriptions of these external variables.
 // OurVertices:
 std::vector<VERTEX>* OurVertices;
-int VertexAttributeSetsTotal = 0;
 // OurIndices:
 std::vector<DWORD>* OurIndices;
-int PrimitivesTotal = 0;
 
 // End: External Variable Global Definitions.
 
@@ -73,7 +70,6 @@ int PrimitivesTotal = 0;
 // This is because, while uninitialized, it doesn't point to a known location and could point anywhere, which is dangerous because you could inadvertently modify a random memory location.
 //***
 
-//*HERE2*
 // objReader function: Definition
 int objReader(void)
 {
@@ -105,7 +101,7 @@ int objReader(void)
 	std::vector<XMFLOAT3> vn; int vni = -1;					// Vertex normal vectors		dynamic intermediate array and index (vn[vni]).
 	std::vector<XMFLOAT2> vt; int vti = -1;					// Vertex texture coordinates	dynamic intermediate array and index (vt[vti]).
 
-//*HERE3*
+//*HERE*
 	// Open the Wavefront .obj file for input.
 	obj.open("Text.obj", ios::in);
 	// Check whether the Wavefront .obj file opened successfully. (!obj), (!obj.is_open()), and (obj.fail()) all indicate an error opening the file.
