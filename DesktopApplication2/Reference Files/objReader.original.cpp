@@ -102,7 +102,7 @@ int objReader(void)
 	}
 
 	// Count the total number of geometric vertices (GeometricVerticesTotal), and the total number of primitives (PrimitivesTotal), of the object specified in the Wavefront .obj file.
-	while (getstatement(obj, stringtext))						// Attempt to read an entire statement, from the input file stream object obj, into the string variable "stringtext". At eof "getstatement" becomes false and the while loop is exited.
+	while (getline(obj, stringtext))						// Attempt to read an entire statement, from the input file stream object obj, into the string variable "stringtext". At eof "getline" becomes false and the while loop is exited.
 	{
 		// A statement was successfully read from the Wavefront .obj file.
 
@@ -144,7 +144,7 @@ int objReader(void)
 	obj.seekg(0, ios::beg);									// Set the position of the next character to be read to the input file stream's beginning.
 
 	// Assign values to OurVertices and OurIndices from the Wavefront .obj file.
-	while (getstatement(obj, stringtext))						// Attempt to read an entire statement, from the input file stream object obj, into the string variable "stringtext". At eof "getstatement" becomes false and the while loop is exited.
+	while (getline(obj, stringtext))						// Attempt to read an entire statement, from the input file stream object obj, into the string variable "stringtext". At eof "getline" becomes false and the while loop is exited.
 	{
 		// A statement was successfully read from file obj.
 

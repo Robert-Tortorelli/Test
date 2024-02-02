@@ -31,7 +31,7 @@ void readObjFile(const std::string& filename) {
 
 /*
 Contrast using std::sscanf(line.c_str(), "v %f %f %f", &vertex.x, &vertex.y, &vertex.z); vs. using lineStream >> vertex.x >> vertex.y >> vertex.z;
-(See ChatGPT.cpp for an example of sscan())
+(See ChatGPT.cpp for an example of sscanf())
 
 Both `std::sscanf` and `std::istringstream` can be used to parse strings in C++, but they have some differences:
 
@@ -47,17 +47,17 @@ In your case, both `std::sscanf(line.c_str(), "v %f %f %f", &vertex.x, &vertex.y
 */
 
         if (type == "v") {
-            XMFLOAT3 vertex;
-            lineStream >> vertex.x >> vertex.y >> vertex.z;	// Equivalent to my v variable.
-            vertices.push_back(vertex);						// Corresponds to populating my OurVertices variable.
+            XMFLOAT3 vertex;                                // Equivalent to my v variable.
+            lineStream >> vertex.x >> vertex.y >> vertex.z;
+            vertices.push_back(vertex);						// Corresponds to populating my OurVertices variable with my v variable.
         } else if (type == "vn") {
-            XMFLOAT3 normal;
-            lineStream >> normal.x >> normal.y >> normal.z;	// Equivalent to my vn variable.
-            normals.push_back(normal);						// Corresponds to populating my OurVertices variable.
+            XMFLOAT3 normal;                                // Equivalent to my vn variable.
+            lineStream >> normal.x >> normal.y >> normal.z;
+            normals.push_back(normal);						// Corresponds to populating my OurVertices variable with my vn variable.
         } else if (type == "vt") {
-            XMFLOAT2 texCoord;
-            lineStream >> texCoord.x >> texCoord.y;			// Equivalent to my vt variable.
-            texCoords.push_back(texCoord);					// Corresponds to populating my OurVertices variable.
+            XMFLOAT2 texCoord;                              // Equivalent to my vt variable.
+            lineStream >> texCoord.x >> texCoord.y;
+            texCoords.push_back(texCoord);					// Corresponds to populating my OurVertices variable with my vt variable.
         } else if (type == "f") {
             // Parse face data here
             // Note: This is a simplified example and assumes that faces are defined as "f v1/vt1/vn1 v2/vt2/vn2 v3/vt3/vn3"

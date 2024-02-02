@@ -59,16 +59,18 @@ struct VERTEX {												// Vertex attributes.
 // Define external variables in one and only one source file (not this one) and initialize them as needed.
 //
 // OurVertices (used to initialize the DirectX vertex buffer), a variable containing values formatted for DirectX, is the array of unique sets of vertex attributes of a single 3D object.
-extern std::vector<VERTEX>* OurVertices;					// A pointer to the first element in an array of VERTEX structures.
+extern std::vector<VERTEX>* OurVertices;					// A pointer to the first element in an array of VERTEX structures. Each array element contains the vertex attributes for one of the three vertices of a triangle.
+extern int OurVerticesi;									// Index OurVerticesi (OurVertices[OurVerticesi]).
 // A cube's 6 sides				 are each comprised of 4 corners (vertices) so there are 4 unique sets of vertex attributes per side   for a total of 6 x 4 = 24 unique sets of vertex attributes.
 // A cube's 8 corners (vertices) are each part		of 3 sides				so there are 3 unique sets of vertex attributes per corner for a total of 8 x 3 = 24 unique sets of vertex attributes.
 // By contrast, in a program where (unlike this program) the only vertex attribute is the geometric vertex, there are only 8 unique sets of vertex attributes, i.e., each set contains only a single geometric vertex.
 extern int VertexAttributeSetsTotal;						// The total number of array elements in OurVertices, e.g., 24 array elements define a cube.
 //
-// OurIndices (used to initialize the DirectX index buffer), a variable containing values formatted for DirectX, is an array of non-unique indices of OurVertices, each referencing an associated unique set of vertex attributes in OurVertices.
+// OurIndices (used to initialize the DirectX index buffer), a variable containing values formatted for DirectX, is an array of non-unique indices of OurVertices, each pointing to an associated unique set of vertex attributes in OurVertices.
 // One unique set of vertex attributes in OurVertices, OurVertices(y), may be referenced more than once by duplicate (non-unique) indices in OurIndices:
-// e.g., OurIndices(x1) and OurIndices(x2) = y (y is the duplicate (non-unique) index in OurIndices), both referencing the same unique set of vertex attributes of OurVertices(y), e.g., OurIndices(x1) = y so OurVertices(OurIndices(x1)) = OurVertices(y).
-extern std::vector<DWORD>* OurIndices;						// A pointer to the first element in an array of DWORDs.
+// e.g., OurIndices(x1) and OurIndices(x2) = y (y is the duplicate (non-unique) index in OurIndices), both pointing to the same unique set of vertex attributes of OurVertices(y), e.g., OurIndices(x1) = y so OurVertices(OurIndices(x1)) = OurVertices(y).
+extern std::vector<DWORD>* OurIndices;						// A pointer to the first array element in an array of indices, with each array element pointing to the corresponding set of vertex attributes (for one of the three vertices of a triangle) in an OurVertices array element.
+extern int OurIndicesi;										// Index OurIndicesi (OurIndices[OurIndicesi]).
 // A cube's 6 sides are comprised of 2 triangle primitives per side, for a total of 6 x 2 = 12 triangle primitives, each triangle primitive comprised of 3 vertices, for a total of 12 x 3 = 36 non-unique geometric vertex indices.
 extern int PrimitivesTotal;									// The total number of triangle primitives comprising a single 3D object, e.g., 12 triangle primitives define a cube and the total number of array elements in OurIndices is PrimitivesTotal * 3 = 36.
 

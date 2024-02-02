@@ -21,8 +21,11 @@
 // Standard Encapsulated Data and Functions for Manipulating String Data.
 #include <string>											// String class member functions stof, to_string, etc.
 
-// File Stream.
+// File Stream Functions.
 #include <fstream>											// File stream class member functions get, close, etc.
+
+// String stream class member functions.
+#include <sstream>											// String stream class member functions getline, etc.
 
 // Using Declarations and Directives.
 // Using declarations such as using std::string;   bring one identifier	 in the named namespace into scope.
@@ -35,6 +38,7 @@ using std::ios;
 using std::stof;
 using std::string;
 using std::vector;
+using std::istringstream;
 
 //***
 // DirectX Global Declarations.
@@ -56,9 +60,9 @@ using namespace DirectX;                                    // Used with the Dir
 // Define external variables in one and only one source file (this one) and initialize them as needed.
 // See the associated header file for declarations and descriptions of these external variables.
 // OurVertices:
-std::vector<VERTEX>* OurVertices;
+vector<VERTEX>* OurVertices; int OurVerticesi = -1;
 // OurIndices:
-std::vector<DWORD>* OurIndices;
+vector<DWORD>* OurIndices; int OurIndicesi = -1;
 
 // End: External Variable Global Definitions.
 
@@ -81,27 +85,28 @@ int objReader(void)
 	string stringtext;										// Holds one statement of the input file stream object representing the Wavefront .obj file.
 
 	// Wavefront .obj file format requirements:
-	// - Vertex attributes are listed first in a Wavefront .obj file, and will therefore be processed before any face elements, so that the face elements can refer to vertex attributes by number, using the order in which they occur in the file.
+	// - Vertex attribute statements are listed first, and will therefore be parsed before any face element statements.
+	//   Supported and required vertex attribute statements are geometric vertex statements (v x y z), vertex texture coordinate statements (vt u v), and vertex normal vector statements (vn x y z).
+	//   Face element statements specify indices referring to vertex attribute statements by the order in which the vertex attribute statements appear.
+	//   Supported and required face element statements specify three triplets, one triplet for each of the three vertices of a triangle (f v1/vt1/vn1 v2/vt2/vn2 v3/vt3/vn3), where v1, v2, v3 are geometric vertex indices, vt1, vt2, vt3 are vertex texture coordinate indices, and vn1, vn2, vn3 are vertex normal vector indices.
+	//   The order of the face element statements determines the order in which the triangles must be drawn. This order is important when dealing with overlapping triangles, as the later triangles will be drawn on top of the earlier ones.
+	//   
 	// - No spaces are permitted before or after a slash ('/').
 	// - Statements can start in any column.
 	// - Statements can be logically joined with the line continuation character ( \ ) at the end of a line. (*This is not supported by this program*)
 	//
-	// objRenderer Wavefront .obj file requirements:
-	// - Face elements must specify triangle primitives comprised of three triplets, one triplet for each of the three vertices in a triangle, with each triplet referencing all three vertex attributes, e.g., f v1/vt1/vn1 v2/vt2/vn2 v3/vt3/vn3.
-	//
-	// Variables used to parse the Wavefront .obj file:
-	// Intermediate arrays are used to temporarily store all vertex attributes before they are copied to the external variables OurVertices and OurIndices, which are used to initialize DirectX data structures.
+	// Variables used to parse the Wavefront .obj file: Vertex attribute intermediate arrays
+	// Intermediate arrays are used to temporarily store all vertex attributes before they are copied to the variables OurVertices and OurIndices, which are used to initialize DirectX data structures.
 	// Each intermediate array is a one-dimensional array of structures, where each array element (each structure) contains vertex attributes of a given type for one vertex.
 	// v[]  is the intermediate array of structures for geometric vertices,			where each structure contains three floating-point values (x, y, z).
-	// vn[] is the intermediate array of structures for vertex normal vectors,		where each structure contains three floating-point values (x, y, z).
 	// vt[] is the intermediate array of structures for vertex texture coordinates, where each structure contains two	floating-point values (x, y; usually named U, V in computer graphics).
+	// vn[] is the intermediate array of structures for vertex normal vectors,		where each structure contains three floating-point values (x, y, z).
 	// Each intermediate array is indexed by a variable, vi, vni, or vti, initialized to -1, that is incremented by 1 each time a new vertex attribute is stored in the intermediate array.
 	// Each intermediate array is dynamically allocated using C++ std::vector, which is a template class that provides dynamic array functionality.
-	std::vector<XMFLOAT3> v; int vi = -1;					// Geometric vertices			dynamic intermediate array and index (v[vi]).
-	std::vector<XMFLOAT3> vn; int vni = -1;					// Vertex normal vectors		dynamic intermediate array and index (vn[vni]).
-	std::vector<XMFLOAT2> vt; int vti = -1;					// Vertex texture coordinates	dynamic intermediate array and index (vt[vti]).
+	vector<XMFLOAT3> v; int vi = -1;					// Geometric vertices			dynamic intermediate array, and index (v[vi]).
+	vector<XMFLOAT2> vt; int vti = -1;					// Vertex texture coordinates	dynamic intermediate array, and index (vt[vti]).
+	vector<XMFLOAT3> vn; int vni = -1;					// Vertex normal vectors		dynamic intermediate array, and index (vn[vni]).
 
-//*HERE*
 	// Open the Wavefront .obj file for input.
 	obj.open("Text.obj", ios::in);
 	// Check whether the Wavefront .obj file opened successfully. (!obj), (!obj.is_open()), and (obj.fail()) all indicate an error opening the file.
@@ -113,145 +118,94 @@ int objReader(void)
 		return 1;
 	}
 
-	while (getline(obj, stringtext))						// Attempt to read an entire statement, from the input file stream object obj, into the string variable "stringtext". At eof "getline" becomes false and the while loop is exited.
+	while (getline(obj, stringtext))						// Read an entire statement, from the input file stream object obj, into the string variable stringtext. At eof getline becomes false and the while loop is exited.
 	{
-		// Check whether the statement's first non-blank character is "# ", indicating a comment statement.
-		if (stringtext.find("#") != string::npos)			// If '#' is found in stringtext then:
-		{
-			// Ignore comments.
-			continue;										// Skip the rest of the while loop and continue with the next iteration of the while loop.
-		}
+		istringstream lineStream(stringtext);				// Declaring object "lineStream" inside the loop ensures that it is reset and ready to parse the next line of the file in each iteration of the loop.
+		string type;										// Wavefront .obj file statement type: #, v, vn, vt, f, etc.
+															// Declaring variable "type" inside the loop ensures that it is reset at the start of each iteration, which is generally what you want when reading a new line from the file.
+		// Face element vertex attribute indices (f v1/vt1/vn1 v2/vt2/vn2 v3/vt3/vn3) of the current face element triplet.
+		int fv;												// Geometric vertex index (v1, or v2, or v3).
+		int fvt;											// Vertex texture coordinate index (vt1, or vt2, or vt3).
+		int fvn;											// Vertex normal vector index (vn1, or vn2, or vn3).
+		char slash = '/';									// The slash character ('/') is a delimiter used to parse the face element.
 
-		// Check whether the statement's first non-blank character is "v ", indicating a geometric vertex statement, then convert each of three numeric string values to float and store them in v[].
-		if (stringtext[0] == 'v')							// If the statement's first non-blank character is "v " then:
-		{
-			// Process the geometric vertex statement.
-			vi = vi + 1;									// Increment the geometric vertex index.
-			v[vi].x = stof(stringtext.substr(2, 8));		// Convert the first numeric string value to float and store it in v[vi].X.
-			v[vi].y = stof(stringtext.substr(10, 8));		// Convert the second numeric string value to float and store it in v[vi].Y.
-			v[vi].z = stof(stringtext.substr(18, 8));		// Convert the third numeric string value to float and store it in v[vi].Z.
-			continue;										// Skip the rest of the while loop and continue with the next iteration of the while loop.
-		}
-	}
-}
-/*
-		If statement's first non-blank character = "vt" Then // Vertex texture coordinates are temporarily stored in vt[], an intermediate array.
-		{
-			vti = vti + 1
-			vt[vti].U = StringtoFloat(Find(1st #))
-			vt[vti].V = StringtoFloat(Find(2nd #))
-			Continue
-		}
+		lineStream >> type;									// The >> operator extracts the next value from the lineStream input stream object and stores it in the variable "type".
 
-		If statement's first non-blank character = "vn" Then // Vertex normal vectors are temporarily stored in vn[], an intermediate array.
+		if (type == "v")
 		{
-			vni = vni + 1
-			vn[vni].x = StringtoFloat(Find(1st #))
-			vn[vni].y = StringtoFloat(Find(2nd #))
-			vn[vni].z = StringtoFloat(Find(3rd #))
-			Continue
-		}
-		
-		If statement's first non-blank character = "f " Then // All vertex attributes in the Wavefront .obj file have been processed. Process the next face element and assign values to OurVertices, the vertex attribute array, and OurIndices, the vertex attribute index array.
+			// The statement read is a geometric vertex statement. Parse and store it in variable v.
+			// The >> operator extracts the next value from the lineStream input stream object and stores it in the variable "v[vi].x", then "v[vi].y", then "v[vi].z".
+			vi++;												// Increment the geometric vertex index.
+			lineStream >> v[vi].x >> v[vi].y >> v[vi].z;		// The >> operator extracts the next value from the lineStream input stream object and stores it in the variable "v[vi].x", then "v[vi].y", then "v[vi].z".
+		} else if (type == "vn")
 		{
-			For i = 1 to 3 // Process each of the three triplets (v/vt/vn) in the current face element (f v1/vt1/vn1 v2/vt2/vn2 v3/vt3/vn3) by extracting face element indices, adjusted by -1. (Adapting the Wavefront .obj file format to DirectX)
+			// The statement read is a vertex normal vector statement. Parse and store it in variable vn.
+			// The >> operator extracts the next value from the lineStream input stream object and stores it in the variable "vn[vni].x", then "vn[vni].y", then "vn[vni].z".
+			vni++;												// Increment the vertex normal vector index.
+			lineStream >> vn[vni].x >> vn[vni].y >> vn[vni].z;	// The >> operator extracts the next value from the lineStream input stream object and stores it in the variable "vn[vni].x", then "vn[vni].y", then "vn[vni].z".
+		} else if (type == "vt")
+		{
+			// The statement read is a vertex texture coordinate statement. Parse and store it in variable vt.
+			// The >> operator extracts the next value from the lineStream input stream object and stores it in the variable "vt[vti].x", then "vt[vti].y".
+			vti++;												// Increment the vertex texture coordinate index.
+			lineStream >> vt[vti].x >> vt[vti].y;				// The >> operator extracts the next value from the lineStream input stream object and stores it in the variable "vt[vti].x", then "vt[vti].y".
+		} else if (type == "f")
+		{
+			// The statement read is a face element statement, therefore all vertex attribute statements in the Wavefront .obj file have been read and parsed.
+			// Now parse the current face element statement:
+			//   Each triplet indicates one set of vertex attributes for one of the three vertices of a triangle. These are stored together in the next consecutive element of the array of structures variable OurVertices[OurVerticesi].
+			//   This results in storing vertex attributes in variable OurVertices in the order specified by the face element statements, which is the order in which the triangles must be drawn.
+			//   However, the drawing order of triangle vertices must be converted from counter-clockwise (Wavefront .obj file) to clockwise (DirectX), to adjust it from the Wavefront .obj file format to the DirectX format.
+			//   This can be done by reversing the order of the second and third geometric vertex indices of each triangle's three vertices, which is equivalent to changing the order by which the elements of variable OurVertices are referenced by variable OurIndices:
+			//     OurVertices[OurVerticesi] is OurVertices[OurIndices[OurIndicesi]], where instead of OurIndices[OurIndicesi] = 0, 1, 2, 3, 4, 5, etc. the drawing order is reversed using OurIndices[OurIndicesi] = (-2,) 0, 2, 1, 3, 5, 4 , 6, 8, 7, 9, 11, 10, etc. (-2 is a seed for the algorithm* producing this pattern, and is not stored or otherwise used)
+			//     *Here's the OurIndices algorithm producing this pattern: Add 2 to the first value to calculate the second value, then add two to the second value to calculate the third value, then subtract 1 from the third value to calculate the forth value. Then repeat, treating the forth value as the new "first value".
+			//   Alternatively, OurVertices[OurIndices[OurIndicesi]], which is the set of vertex attributes, could be changed while keeping OurIndices[OurIndicesi] = 0, 1, 2, 3, 4, 5, etc. (This is not done in this program)
+
+			// Parse each of the three triplets in the face element (f v1/vt1/vn1 v2/vt2/vn2 v3/vt3/vn3).
+			for (int i = 1; i <= 3; i++)
 			{
-				s_no = s_no + 1					  // Update s_no array index (OurVertices[s_no])
-				triplet_no = NewValuetriplet_no(triplet_no) // Update triplet_no array index (OurIndices[triplet_no]). NewValuetriplet_no() generates triplet_no in the sequence 0, 2, 1, 3, 5, 4, etc. See the function's definition below. (Adapting the Wavefront .obj file format to DirectX)
+				// Parse the current triplet (v/vt/vn) in the face element, storing the face element indices.
+				lineStream >> fv >> slash >> fvt >> slash >> fvn;
 
-				If i = 1 Then
-				{
-					// i = 1: Process the first triplet (v1/vt1/vn1) in the current face element (f v1/vt1/vn1 v2/vt2/vn2 v3/vt3/vn3):
-					vi = StringtoFloat(Substring(statement, " ", "/")) -1
-					vti = StringtoFloat(Substring(statement, "/", "/")) -1
-					vni = StringtoFloat(Substring(statement, "/", " ")) -1
-				}
+				// Decrement the face element indices by 1 to adjust them from the Wavefront .obj file format to the C++ format.
+				// The first index in the Wavefront .obj file format is 1, but in the DirectX format it is 0. However, this program does not use the face element indices directly, so an adjustment for DirectX is not necessary.
+				// Nevertheless, the face element indices are decremented by 1 because the indices v1, vti, and vni of the vertex attribute intermediate arrays v[vi], vt[vti], and vn[vn1] start with 0.
+				fv--; fvt--; fvn--;
 
-				If i = 2 Then
-				{
-					// i = 2: Process the second triplet (v2/vt2/vn2) in the current face element (f v1/vt1/vn1 v2/vt2/vn2 v3/vt3/vn3):
-					vi = StringtoFloat(Substring(statement, " ", "/")) -1
-					vti = StringtoFloat(Substring(statement, "/", "/")) -1
-					vni = StringtoFloat(Substring(statement, "/", " ")) -1
-				}
+				// Update the indices of the next elements in the variables OurVertices and OurIndices.
+				OurVerticesi++;
+				OurIndicesi++;
 
-				If i = 3 Then
-				{
-					// i = 3: Process the third triplet (v3/vt3/vn3) in the current face element (f v1/vt1/vn1 v2/vt2/vn2 v3/vt3/vn3):
-					vi = StringtoFloat(Substring(statement, " ", "/")) -1
-					vti = StringtoFloat(Substring(statement, "/", "/")) -1
-					vni = StringtoFloat(Substring(statement, "/", /EOL)) -1
-				}
+				// Copy the set of vertex attributes, specified by the indices of the current face element triplet, from their intermediate arrays v[], vt[], and vn[] to a candidate OurVertices array element, and set the next OurIndices array element to point to this OurVertices array element.
+				//
+				// The order of face element statements in the Wavefront .obj file determines the order in which vertices must be drawn. Face element statements are parsed in this order.
+				// Each set of vertex attributes is stored in the next consecutive element of OurVertices.
+				// Therefore the sets of vertex attributes are stored in the order vertices must be drawn.
+				// When rendering an object with DirectX, the drawing order is determined by the values in the OurIndices array, which is a list of indices referring to the elements of OurVertices.
+				// Therefore this list would also be consecutive, were it not for the need to convert the drawing order to clockwise as discussed above.
+				/* Check below, and:
+				   *See 'Reference Files/Robert-Tortorelli Take the following.txt'
+				   *Remove the word "variable" as a prefix to the variable names in all (most?) comments.
+				   *Check where the word "value" is used in the comments. It may be used unnecessarily in some places.
+				   *Check where the word "set" is used alone in the comments. Should "set of vertex attributes" be used instead?
+				*/
+				OurVertices->at(OurVerticesi).GeometricVertex.x = v[fv].x;
+				OurVertices->at(OurVerticesi).GeometricVertex.y = v[fv].y;
+				OurVertices->at(OurVerticesi).GeometricVertex.z = v[fv].z * -1.0f;			// Invert the geometric vertex's Z coordinate, to adjust it from the Wavefront .obj file format to the DirectX format.
 
-				// Copy the set of vertex attributes from their intermediate arrays to a new candidate OurVertices array element.
-				OurVertices[s_no].X = v[vi].X
-				OurVertices[s_no].Y = v[vi].Y
-				OurVertices[s_no].Z = v[vi].Z * -1.0f				   // Invert the geometric vertex's Z coordinate.		   (Adapting the Wavefront .obj file format to DirectX)
-				OurVertices[s_no].VertexNormal.x = vn[vni].x
-				OurVertices[s_no].VertexNormal.y = vn[vni].y
-				OurVertices[s_no].VertexNormal.z = vn[vni].z * -1.0f // Invert the vertex normal vector's Z coordinate.	   (Adapting the Wavefront .obj file format to DirectX)
-				OurVertices[s_no].U = vt[vti].U
-				OurVertices[s_no].V = 1.0f - vt[vti].V			   // Invert the vertex texture coordinate's V coordinate. (Adapting the Wavefront .obj file format to DirectX)
+				OurVertices->at(OurVerticesi).VertexTextureCoordinate.x = vt[fvt].x;
+				OurVertices->at(OurVerticesi).VertexTextureCoordinate.y = 1.0f - vt[fvt].y;	// Invert the vertex texture coordinate's V coordinate, to adjust it from the Wavefront .obj file format to the DirectX format.
 
-				// Check whether the new OurVertices array element is unique.
-				If (OurVertices[s_no] already exists in OurVertices[] at [Index]) Then
-				{
-					// The new OurVertices[s_no] array element is non-unique (it already exists at OurVertices[Index]) and must be deleted.
-				
-					// Set OurIndices[triplet_no] to reference the existing OurVertices array element OurVertices[Index].
-					OurIndices[triplet_no] = Index // OurVertices[OurIndices[triplet_no]] is OurVertices[Index]
-				
-					// Delete the non-unique OurVertices array element.
-					OurVertices[s_no] = NULL
-					s_no = s_no - 1 // This causes the indices s_no and triplet_no to diverge. If all OurVertices array elements are unique then s_no and triplet_no remain synchronized.
+				OurVertices->at(OurVerticesi).VertexNormalVector.x = vn[fvn].x;
+				OurVertices->at(OurVerticesi).VertexNormalVector.y = vn[fvn].y;
+				OurVertices->at(OurVerticesi).VertexNormalVector.z = vn[fvn].z * -1.0f;		// Invert the vertex normal vector's Z coordinate, to adjust it the Wavefront .obj file format to the DirectX format.
 
-				}	Else
-					{
-						// The new OurVertices[s_no] array element is unique and will be used.
-
-						// Set OurIndices[triplet_no] to reference the new OurVertices array element OurVertices[s_no].
-						OurIndices[triplet_no] = s_no // OurVertices[OurIndices[triplet_no]] is OurVertices[s_no]
-					}
+				/* Calculate the next OurIndices array element's standard value (OurIndices[OurIndicesi]) using the OurIndices algorithm described above.
+				Test if the candidate OurVertices array element's value is unique (new) or not (not new).
+				If the candidate OurVertices array element's value is	  unique (new),		OurIndices[OurIndicesi] is assigned the standard value and the candidate OurVertices array element is kept.
+				If the candidate OurVertices array element's value is not unique (not new), OurIndices[OurIndicesi] is assigned the value of OurVerticesi where the existing OurVertices[OurVerticesi] array element's value was found, and the candidate OurVertices array element will be reused, i.e., OurVerticesi is decremented to account for the deleted element.
+				*/
 			}
-		}
+		} else continue;										// The statement read is not a geometric vertex, vertex texture coordinate, vertex normal vector, or face element statement. Ignore it and continue.
 	}
-
-NewValuetriplet_no(x)
-// Converting the drawing order from counter-clockwise (Wavefront .obj file) to clockwise (DirectX): Reversing the order of face element geometric vertex indices. (Adapting the Wavefront .obj file format to DirectX)
-{
-	If (i = 1) Then
-	{
-		i = 2 // i is initially 1, therefore the first time this function is called i is set to 2.  i alternates between 2 and 1.
-	}	Else
-		{
-			i = 1
-		}
-	Return x = x + i, // Increment the parameter by i and return this value to the caller.
-	
-	The calling program calls the NewValuetriplet_no() function to reverse the order of vertices by generating triplet_no in the sequence 0, 2, 1 etc.
-	This is preferable to rewriting OurIndices in reverse order after it is initially computed.
-	OurIndices cannot be written in full reverse order from the start, because I do not have a count of the total number of face element triplets until I'm done processing the Wavefront .obj file, 
-	and I do not want to "pre-read" the Wavefront .obj file to calculate this count, as this would mean reading the entire file twice.
-	Note it is not necessary to "pre-read" the Wavefront .obj file to determine the amount of storage needed to define OurVertices and OurIndices, as they are dynamically allocated using a C++ std::vector.
-
-	NewValuetriplet_no() Function:
-	x = 0 (initial value)
-	x = NewValuetriplet_no(x) :: x = x + i, where i alternates between 2 and 1.
-	By default C++ functions pass by value, in which case the return value needs to be assigned to a variable in the scope of the caller.
-	Questions:
-	1. If NewValuetriplet_no() is a function then does i have to be static to alternate (if i = 2 then i = 1 else i = 2)?
-	2. If NewValuetriplet_no() is not a function (if it is inline) then is i being static immaterial and is this more efficient?
-
-	Reverse only the 2nd and 3rd indices of each triangle's three vertices:
-	0, 1, 2,    // Triangle 1
-	2, 1, 3     // Triangle 2
-	
-	Becomes:	
-	0, 2, 1,    // Triangle 1 reversed
-	2, 3, 1     // Triangle 2 reversed
-	
-	In this case you're keeping the starting point of each triangle, the first index, and then moving in the opposite direction.
-	This method was first seen at https://msdn.microsoft.com/en-us/library/windows/desktop/bb204853(v=vs.85).aspx.
-	
 }
-*/
