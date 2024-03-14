@@ -1,3 +1,7 @@
+// objReader Header File
+// Version 3.1
+//
+// Description
 // Wavefront .obj file I/O Header File
 // Version 3.1
 //
@@ -28,9 +32,6 @@
 // DWORD Header File.
 #include <intsafe.h>										// Required for the DWORD data type. Note the main objRenderer program (with the WinMain function) includes the larger windows.h, containing IntSafe.h, instead.
 
-// Global Function Declarations: Function prototypes for functions (e.g., objReader) called by programs (e.g., objRenderer) that include this header file. They are optional in the functions named here (e.g., objReader).
-int objReader(void);										// The objReader function parses a single 3D object's Wavefront .obj file and uses it to populate the external global variables OurVertices and OurIndices.
-
 //***
 // DirectX Global Declarations.
 //***
@@ -38,9 +39,23 @@ int objReader(void);										// The objReader function parses a single 3D objec
 // DirectXMath Header File.									// The DirectXMath API provides SIMD-friendly C++ types and functions for common linear algebra and graphics math operations common to DirectX programs.
 #include <directxmath.h>                                    // Used with the namespace DirectX.
 
+// Using Declarations and Directives.
+// Using declarations such as using std::string;   bring one identifier	 in the named namespace into scope.
+// Using directives	  such as using namespace std; bring all identifiers in the named namespace into scope.
+// Using declarations are preferred to using directives.
+// Using declarations and directives must appear after their respective header file includes.
+using namespace DirectX;									// The DirectXMath API is in the DirectX namespace.
+
+// End: DirectX Global Declarations.
+
+//***
+// Structure Declarations.
+// Structures used to define new data types that can contain multiple members of different types.
+// They must be declared before the variables they are used to define, i.e., OurVertices.
+//***
+
 // Declare the VERTEX 'named structure' data type, a dynamic array of structures.
-// The input-layout object describes the VERTEX structure.
-// The input element description structure defines the input-layout object.
+// The input element description structure is used to define the input-layout object that describes the VERTEX structure.
 // If the VERTEX structure is changed then the input element description structure (defined in objRenderer.cpp) must be changed accordingly.
 struct VERTEX {												// Vertex attributes.
 	XMFLOAT3 GeometricVertex;								// Geometric vertex attribute:			.x, .y, .z	("v " element in the Wavefront .obj file)
@@ -48,9 +63,8 @@ struct VERTEX {												// Vertex attributes.
 	XMFLOAT2 VertexTextureCoordinate;						// Vertex texture coordinate attribute:	.x, .y		("vt" element in the Wavefront .obj file)
 };
 
-// End: DirectX Global Declarations.
+// End: Structure Declarations.
 
-//*HERE1* Note that VertexAttributeSetsTotal and PrimitivesTotal may not be needed in objRenderer.
 //***
 // External Variable Global Declarations.
 //***
@@ -59,21 +73,30 @@ struct VERTEX {												// Vertex attributes.
 // Define external variables in one and only one source file (not this one) and initialize them as needed.
 //
 // OurVertices (used to initialize the DirectX vertex buffer), a variable containing values formatted for DirectX, is the array of unique sets of vertex attributes of a single 3D object.
-extern std::vector<VERTEX>* OurVertices;					// A pointer to the first element in a dynamically allocated array of VERTEX structures, with each array element containing the vertex attributes of one of the three vertices of a triangle.
+extern std::vector<VERTEX> OurVertices;						// Dynamically allocated array of VERTEX structures, with each array element containing the vertex attributes of one of the three vertices of a triangle.
 extern int OurVerticesi;									// Index OurVerticesi (OurVertices[OurVerticesi]).
 // A cube's 6 sides				 are each comprised of 4 corners (vertices) so there are 4 unique sets of vertex attributes per side   for a total of 6 x 4 = 24 unique sets of vertex attributes.
 // A cube's 8 corners (vertices) are each part		of 3 sides				so there are 3 unique sets of vertex attributes per corner for a total of 8 x 3 = 24 unique sets of vertex attributes.
 // By contrast, in a program where (unlike this program) the only vertex attribute is the geometric vertex, there are only 8 unique sets of vertex attributes, i.e., each set contains only a single geometric vertex.
-extern int VertexAttributeSetsTotal;						// The total number of array elements in OurVertices, e.g., 24 array elements define a cube.
+extern int VertexAttributeSetsTotal;						// The total number of array elements in OurVertices, e.g., 24 array elements specify a cube.
 //
 // OurIndices (used to initialize the DirectX index buffer), a variable containing values formatted for DirectX, is an array of non-unique indices of OurVertices, each pointing to an associated unique set of vertex attributes in OurVertices.
 // One unique set of vertex attributes in OurVertices, OurVertices(y), may be referenced more than once by duplicate (non-unique) indices in OurIndices:
 // e.g., OurIndices(x1) and OurIndices(x2) = y (y is the duplicate (non-unique) index in OurIndices), both pointing to the same unique set of vertex attributes of OurVertices(y), e.g., OurIndices(x1) = y so OurVertices(OurIndices(x1)) = OurVertices(y).
-extern std::vector<DWORD>* OurIndices;						// A pointer to the first element in a dynamically allocated array of DWORD indices, with each array element pointing to the corresponding set of vertex attributes (for one of the three vertices of a triangle) in an OurVertices array element.
+extern std::vector<DWORD> OurIndices;						// Dynamically allocated array of DWORD indices, with each array element pointing to the corresponding set of vertex attributes (for one of the three vertices of a triangle) in an OurVertices array element.
 extern int OurIndicesi;										// Index OurIndicesi (OurIndices[OurIndicesi]).
 // A cube's 6 sides are comprised of 2 triangle primitives per side, for a total of 6 x 2 = 12 triangle primitives, each triangle primitive comprised of 3 vertices, for a total of 12 x 3 = 36 non-unique geometric vertex indices.
-extern int PrimitivesTotal;									// The total number of triangle primitives comprising a single 3D object, e.g., 12 triangle primitives define a cube and the total number of array elements in OurIndices is PrimitivesTotal * 3 = 36.
+extern int PrimitivesTotal;									// The total number of triangle primitives comprising a single 3D object, e.g., 12 triangle primitives specify a cube and the total number of array elements in OurIndices is PrimitivesTotal * 3 = 36.
 
 // End: External Variable Global Declarations.
+
+//***
+// Global Function Declarations.
+// Function prototypes for functions (e.g., objReader) called by programs (e.g., objRenderer) that include this header file. They are optional in the functions named here (e.g., objReader).
+//***
+
+int objReader(void);										// The objReader function parses a single 3D object's Wavefront .obj file and uses it to populate the external global variables OurVertices and OurIndices.
+
+// End: Global Function Declarations.
 
 // End: Global Declarations.

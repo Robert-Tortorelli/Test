@@ -151,7 +151,7 @@ struct {
 //   WINAPI is a Microsoft Windows data type used to define a function return value. Most functions in the Windows API are declared using WINAPI. It expands to __stdcall.
 int WINAPI WinMain(HINSTANCE hInstance,						// The "handle to an instance" or "handle to a module." The operating system uses this value to identify the executable when it is loaded in memory.
 	HINSTANCE hPrevInstance,								// This parameter has no meaning. It was used in 16-bit Windows, but is now always zero.
-	LPSTR lpCmdLine,										// Contains the command line arguments, excluding the program name, as an ANSI string. To retrieve the entire command line, as a UNICODE string, use the GetCommandLine function.
+	LPSTR lpCmdLine,											// Contains the command line arguments, excluding the program name, as an ANSI string. To retrieve the entire command line, as a UNICODE string, use the GetCommandLine function.
 	int nCmdShow)											// Indicates if the main program window will be minimized, maximized, or shown normally.
 {
 	RECT wr;												// The RECT structure contains the coordinates of the top-left and bottom-right corners of the client rectangle (initially) or the window rectangle (after the AdjustWindowRectEx function returns).
