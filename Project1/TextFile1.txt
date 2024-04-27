@@ -1,1 +1,2 @@
 This is a test file.
+Change made on the master branch.
