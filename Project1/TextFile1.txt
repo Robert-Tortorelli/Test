@@ -1,5 +1,0 @@
-This is a test file.
-Change made on the master branch.
-Another change made on the master branch.
-Yet another change made on the master branch.
-Change made on the development branch.
